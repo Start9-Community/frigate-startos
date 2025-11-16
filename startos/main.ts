@@ -16,12 +16,12 @@ export const main = sdk.setupMain(async ({ effects, started }) => {
       .mountVolume({
         volumeId: 'main',
         subpath: null,
-        mountpoint: '/root/data',
+        mountpoint: '/root/.frigate',
         readonly: false,
       })
       .mountDependency({
         dependencyId: 'bitcoind',
-        mountpoint: '/mnt/bitcoin',
+        mountpoint: '/root/.bitcoin',
         volumeId: 'main',
         subpath: null,
         readonly: true,
@@ -30,7 +30,7 @@ export const main = sdk.setupMain(async ({ effects, started }) => {
   )
 
   // set watch on bitcoin .cookie file to restart daemon on changes
-  await FileHelper.string(`${subcontainer.rootfs}/mnt/bitcoin/.cookie`)
+  await FileHelper.string(`${subcontainer.rootfs}/root/.bitcoin/.cookie`)
     .read()
     .const(effects)
 
@@ -38,17 +38,16 @@ export const main = sdk.setupMain(async ({ effects, started }) => {
     subcontainer: subcontainer,
     exec: {
       command: sdk.useEntrypoint(),
-      runAsInit: true,
       env: {
-        NETWORK: 'testnet4', // @todo: set to mainnet
+        NETWORK: 'mainnet',
       },
     },
     ready: {
       display: 'Frigate Electrum Server',
       fn: () =>
         sdk.healthCheck.checkPortListening(effects, 57001, {
-          successMessage: 'Electrum server is running',
-          errorMessage: 'Electrum server is not running',
+          successMessage: 'Frigate is running',
+          errorMessage: 'Frigate is syncing...',
         }),
     },
     requires: [],

@@ -1,5 +1,5 @@
 import { sdk } from '../sdk'
-import { createDefaultConfig, config, ElectrumServerTypes, electrumServers, electrumServerByUrl } from '../fileModels/config.json'
+import { createDefaultConfig, config, ElectrumServerTypes, electrumServers, electrumServerByUrl, bitcoindUrl, indexStartHeightDefault } from '../fileModels/config.json'
 import { Variants } from '@start9labs/start-sdk/base/lib/actions/input/builder'
 
 const { InputSpec, Value } = sdk
@@ -68,7 +68,7 @@ const inputSpec = InputSpec.of({
         integer: true,
         min: 0,
         max: null,
-        default: 0,
+        default: indexStartHeightDefault,
       }),
       scriptPubKeyCacheSize: Value.number({
         name: 'Script PubKey Cache Size',
@@ -120,12 +120,14 @@ export const setConfig = sdk.Action.withInput(
     }
 
     return {
-      backendElectrumServer:
-        electrumServerByUrl[currentConfig.backendElectrumServer] || 'none',
+      electrumServer: {
+        selection:
+          electrumServerByUrl[currentConfig.backendElectrumServer] || 'none',
+      },
       advanced: {
         startIndexing: currentConfig.startIndexing,
         indexStartHeight: currentConfig.indexStartHeight,
-        scriptPubKeyCacheSize: currentConfig.scriptPubKeyCacheSize,        
+        scriptPubKeyCacheSize: currentConfig.scriptPubKeyCacheSize,
         //useCuda: currentConfig.useCuda,
         //cudaBatchSize: currentConfig.cudaBatchSize,
       },
@@ -135,14 +137,19 @@ export const setConfig = sdk.Action.withInput(
   // the execution function
   async ({ effects, input }) => {
     await config.merge(effects, {
+      coreServer: bitcoindUrl,
+      coreAuthType: 'COOKIE',
+      coreAuth: '',
+      coreDataDir: '/root/.bitcoin',
       startIndexing: input.advanced.startIndexing,
       indexStartHeight: input.advanced.indexStartHeight,
       scriptPubKeyCacheSize: input.advanced.scriptPubKeyCacheSize,
       //useCuda: input.advanced.useCuda,
       //cudaBatchSize: input.advanced.cudaBatchSize,
       backendElectrumServer:
-        electrumServers[input.electrumServer.value as ElectrumServerTypes] ??
-        '',
+        electrumServers[
+          input.electrumServer.selection as ElectrumServerTypes
+        ] ?? '',
     })
   },
 )

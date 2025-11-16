@@ -1,8 +1,8 @@
 import { matches, FileHelper, T } from '@start9labs/start-sdk'
 const { object, string, boolean, oneOf, literal, number } = matches
 
-//export const bitcoindUrl = 'http://bitcoind.startos:8332'
-export const bitcoindUrl = 'http://bitcoind-testnet.startos:48332'
+export const indexStartHeightDefault = 709632 // taproot activation height on mainnet
+export const bitcoindUrl = 'http://bitcoind.startos:8332'
 export type ElectrumServerTypes = 'fulcrum' | 'electrs' | 'none'
 export const electrumServers: Record<ElectrumServerTypes, string> = {
   fulcrum: 'tcp://fulcrum.startos:50001',
@@ -15,15 +15,17 @@ export const electrumServerByUrl = Object.fromEntries(
 
 const shape = object({
   coreServer: string.onMismatch(bitcoindUrl),
-  coreAuthType: oneOf(literal('USERPASS'), literal('COOKIE')).onMismatch('COOKIE'),
-  coreAuth: string,
-  coreDataDir: string.onMismatch('/mnt/bitcoin'),
+  coreAuthType: oneOf(literal('USERPASS'), literal('COOKIE')).onMismatch(
+    'COOKIE',
+  ),
+  coreAuth: string.onMismatch(''),
+  coreDataDir: string.onMismatch('/root/.bitcoin'),
   startIndexing: boolean.onMismatch(true),
-  indexStartHeight: number.onMismatch(0),
-  scriptPubKeyCacheSize: number.onMismatch(10000000),  
+  indexStartHeight: number.onMismatch(indexStartHeightDefault),
+  scriptPubKeyCacheSize: number.onMismatch(10000000),
   useCuda: boolean.onMismatch(false),
   cudaBatchSize: number.onMismatch(300000),
-  backendElectrumServer: string,
+  backendElectrumServer: string.onMismatch(''),
 })
 
 export type FrigateConfigType = typeof shape._TYPE
@@ -44,13 +46,13 @@ export const createDefaultConfig = async (effects: T.Effects) => {
       coreServer: bitcoindUrl,
       coreAuthType: 'COOKIE',
       coreAuth: '',
-      coreDataDir: '/mnt/bitcoin',
+      coreDataDir: '/root/.bitcoin',
       startIndexing: true,
       indexStartHeight: 0,
       scriptPubKeyCacheSize: 10000000,
       useCuda: false,
       cudaBatchSize: 300000,
-      backendElectrumServer: 'tcp://fulcrum.startos:50001',
+      backendElectrumServer: '',
     })
   }
 }
