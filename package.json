@@ -8,7 +8,7 @@
   "dependencies": {
     "@start9labs/start-sdk": "^0.4.0-beta.43",
     "bitcoind-startos": "git+https://github.com/Start9Labs/bitcoind-startos.git#update/040",
-    "bitcoind-testnet-startos": "git+https://github.com/remcoros/bitcoind-testnet-startos.git#update/040",
+    "bitcoind-testnet-startos": "git+https://github.com/remcoros/bitcoind-testnet-startos.git#update/040-testnet4",
     "electrs-startos": "git+https://github.com/Start9Labs/electrs-startos.git#update/040",
     "fulcrum-startos": "git+https://github.com/linkinparkrulz/fulcrum-startos.git#update/040"
   },
