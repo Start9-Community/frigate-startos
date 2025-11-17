@@ -1,5 +1,13 @@
 import { sdk } from '../sdk'
-import { createDefaultConfig, config, ElectrumServerTypes, electrumServers, electrumServerByUrl, bitcoindUrl, indexStartHeightDefault } from '../fileModels/config.json'
+import {
+  createDefaultConfig,
+  config,
+  ElectrumServerTypes,
+  electrumServers,
+  electrumServerByUrl,
+  bitcoindUrl,
+  indexStartHeightDefault,
+} from '../fileModels/config.json'
 import { Variants } from '@start9labs/start-sdk/base/lib/actions/input/builder'
 
 const { InputSpec, Value } = sdk
