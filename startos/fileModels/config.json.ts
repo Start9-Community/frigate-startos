@@ -1,5 +1,5 @@
-import { matches, FileHelper, T } from '@start9labs/start-sdk'
-const { object, string, boolean, oneOf, literal, number } = matches
+import { z, FileHelper, T } from '@start9labs/start-sdk'
+import { sdk } from '../sdk'
 
 export const indexStartHeightDefault = 709632 // taproot activation height on mainnet
 export const bitcoindUrl = 'http://bitcoind.startos:8332'
@@ -13,27 +13,27 @@ export const electrumServerByUrl = Object.fromEntries(
   Object.entries(electrumServers).map(([key, value]) => [value, key]),
 ) as Record<string, ElectrumServerTypes>
 
-const shape = object({
-  coreServer: string.onMismatch(bitcoindUrl),
-  coreAuthType: oneOf(literal('USERPASS'), literal('COOKIE')).onMismatch(
-    'COOKIE',
-  ),
-  coreAuth: string.onMismatch(''),
-  coreDataDir: string.onMismatch('/root/.bitcoin'),
-  startIndexing: boolean.onMismatch(true),
-  indexStartHeight: number.onMismatch(indexStartHeightDefault),
-  scriptPubKeyCacheSize: number.onMismatch(10000000),
-  useCuda: boolean.onMismatch(false),
-  cudaBatchSize: number.onMismatch(300000),
-  backendElectrumServer: string.onMismatch(''),
+const shape = z.object({
+  coreServer: z.string().catch(bitcoindUrl),
+  coreAuthType: z
+    .union([z.literal('USERPASS'), z.literal('COOKIE')])
+    .catch('COOKIE' as const),
+  coreAuth: z.string().catch(''),
+  coreDataDir: z.string().catch('/root/.bitcoin'),
+  startIndexing: z.boolean().catch(true),
+  indexStartHeight: z.number().catch(indexStartHeightDefault),
+  scriptPubKeyCacheSize: z.number().catch(10000000),
+  useCuda: z.boolean().catch(false),
+  cudaBatchSize: z.number().catch(300000),
+  backendElectrumServer: z.string().catch(''),
 })
 
-export type FrigateConfigType = typeof shape._TYPE
+export type FrigateConfigType = z.infer<typeof shape>
 
 export const config = FileHelper.json(
   {
-    volumeId: 'main',
-    subpath: 'config', // note: no .json extension!
+    base: sdk.volumes.main,
+    subpath: '/config', // note: no .json extension!
   },
   shape,
 )

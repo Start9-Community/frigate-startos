@@ -1,7 +1,7 @@
 import { T } from '@start9labs/start-sdk'
 import { config, electrumServers } from './fileModels/config.json'
 import { sdk } from './sdk'
-import { config as bitcoindConfig } from 'bitcoind-startos/startos/actions/config/other'
+import { otherConfig as bitcoindConfig } from 'bitcoind-startos/startos/actions/config/other'
 
 export const setDependencies = sdk.setupDependencies(async ({ effects }) => {
   await sdk.action.createTask(effects, 'bitcoind', bitcoindConfig, 'critical', {

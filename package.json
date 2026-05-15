@@ -6,15 +6,13 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "@start9labs/start-sdk": "^0.4.0-beta.44",
-    "bitcoind-startos": "git+https://github.com/Start9Labs/bitcoind-startos.git#update/040",    
-    "electrs-startos": "git+https://github.com/Start9Labs/electrs-startos.git#update/040",
-    "fulcrum-startos": "git+https://github.com/linkinparkrulz/fulcrum-startos.git#update/040"
+    "@start9labs/start-sdk": "1.5.1",
+    "bitcoind-startos": "git+https://github.com/Start9Labs/bitcoind-startos.git#next/31.x"
   },
   "devDependencies": {
-    "@types/node": "^22.19.1",
+    "@types/node": "^22.19.17",
     "@vercel/ncc": "^0.38.4",
-    "prettier": "^3.6.2",
+    "prettier": "^3.8.2",
     "typescript": "^5.9.3"
   },
   "prettier": {

@@ -1,12 +1,13 @@
 import { sdk } from '../sdk'
+import { i18n } from '../i18n'
 import {
   createDefaultConfig,
   config,
   ElectrumServerTypes,
   electrumServers,
   electrumServerByUrl,
-  bitcoindUrl,
   indexStartHeightDefault,
+  bitcoindUrl,
 } from '../fileModels/config.json'
 import { Variants } from '@start9labs/start-sdk/base/lib/actions/input/builder'
 
@@ -32,25 +33,25 @@ const inputSpec = InputSpec.of({
     }
 
     return {
-      name: 'Electrum Server',
-      description: 'Electrum Backend Server',
+      name: i18n('Electrum Server'),
+      description: i18n('Electrum Backend Server'),
       default: serverType,
       disabled: disabled,
       variants: Variants.of({
         fulcrum: {
           name:
-            'Fulcrum (recommended)' +
-            (disabled.includes('fulcrum') ? ' (not installed)' : ''),
+            i18n('Fulcrum (recommended)') +
+            (disabled.includes('fulcrum') ? ' ' + i18n('(not installed)') : ''),
           spec: InputSpec.of({}),
         },
         electrs: {
           name:
-            'Electrs' +
-            (disabled.includes('electrs') ? ' (not installed)' : ''),
+            i18n('Electrs') +
+            (disabled.includes('electrs') ? ' ' + i18n('(not installed)') : ''),
           spec: InputSpec.of({}),
         },
         none: {
-          name: 'None (not recommended)',
+          name: i18n('None (not recommended)'),
           spec: InputSpec.of({}),
         },
       }),
@@ -58,20 +59,22 @@ const inputSpec = InputSpec.of({
   }),
   advanced: Value.object(
     {
-      name: 'Advanced settings',
-      description: 'Advanced settings',
+      name: i18n('Advanced settings'),
+      description: i18n('Advanced settings'),
     },
     InputSpec.of({
       startIndexing: Value.toggle({
-        name: 'Start Indexing on Launch',
-        description:
+        name: i18n('Start Indexing on Launch'),
+        description: i18n(
           'Whether Frigate should start indexing the blockchain upon launch.',
+        ),
         default: true,
       }),
       indexStartHeight: Value.number({
-        name: 'Index Start Height',
-        description:
+        name: i18n('Index Start Height'),
+        description: i18n(
           'The block height from which Frigate should start indexing.',
+        ),
         required: true,
         integer: true,
         min: 0,
@@ -79,25 +82,16 @@ const inputSpec = InputSpec.of({
         default: indexStartHeightDefault,
       }),
       scriptPubKeyCacheSize: Value.number({
-        name: 'Script PubKey Cache Size',
-        description:
+        name: i18n('Script PubKey Cache Size'),
+        description: i18n(
           'The size of the Script PubKey cache in bytes (default 10,000,000).',
+        ),
         required: true,
         integer: true,
         min: 0,
         max: null,
         default: 10000000,
       }),
-      /*
-      useCuda: Value.boolean({
-        name: 'Use CUDA Acceleration',
-        description: 'Enable CUDA acceleration for indexing (requires compatible GPU).',
-      }),
-      cudaBatchSize: Value.number({
-        name: 'CUDA Batch Size',
-        description: 'The batch size for CUDA processing.',
-      }),
-      */
     }),
   ),
 })
@@ -108,11 +102,11 @@ export const setConfig = sdk.Action.withInput(
 
   // metadata
   async ({ effects }) => ({
-    name: 'Configure Frigate',
-    description: 'Set or update Frigate configuration settings.',
+    name: i18n('Configure Frigate'),
+    description: i18n('Set or update Frigate configuration settings.'),
     warning: null,
     allowedStatuses: 'any',
-    group: 'Configuration',
+    group: i18n('Configuration'),
     visibility: 'enabled',
   }),
 
@@ -136,8 +130,6 @@ export const setConfig = sdk.Action.withInput(
         startIndexing: currentConfig.startIndexing,
         indexStartHeight: currentConfig.indexStartHeight,
         scriptPubKeyCacheSize: currentConfig.scriptPubKeyCacheSize,
-        //useCuda: currentConfig.useCuda,
-        //cudaBatchSize: currentConfig.cudaBatchSize,
       },
     }
   },
@@ -152,8 +144,6 @@ export const setConfig = sdk.Action.withInput(
       startIndexing: input.advanced.startIndexing,
       indexStartHeight: input.advanced.indexStartHeight,
       scriptPubKeyCacheSize: input.advanced.scriptPubKeyCacheSize,
-      //useCuda: input.advanced.useCuda,
-      //cudaBatchSize: input.advanced.cudaBatchSize,
       backendElectrumServer:
         electrumServers[
           input.electrumServer.selection as ElectrumServerTypes
