@@ -1,18 +1,24 @@
 import { sdk } from './sdk'
+import { i18n } from './i18n'
 
 export const setInterfaces = sdk.setupInterfaces(async ({ effects }) => {
   const electrumMulti = sdk.MultiHost.of(effects, 'electrum')
   const electrumMultiOrigin = await electrumMulti.bindPort(57001, {
     protocol: null,
-    addSsl: { preferredExternalPort: 57002, alpn: null },
+    addSsl: {
+      preferredExternalPort: 57002,
+      alpn: null,
+      addXForwardedHeaders: false,
+      auth: null,
+    },
     preferredExternalPort: 57001,
     secure: null,
   })
 
   const electrum = sdk.createInterface(effects, {
-    name: 'Electrum',
+    name: i18n('Electrum'),
     id: 'electrum',
-    description: 'Electrum server endpoint',
+    description: i18n('Electrum server endpoint'),
     type: 'api',
     schemeOverride: null,
     masked: false,

@@ -1,10 +1,10 @@
 import { FileHelper } from '@start9labs/start-sdk'
-import { bitcoindUrl, config } from './fileModels/config.json'
+import { config } from './fileModels/config.toml'
 import { sdk } from './sdk'
-import { read } from 'fs'
-import { getLatestBlockHeight, parseCookie } from './utils'
+import { i18n } from './i18n'
+import { parseCookie } from './utils'
 
-export const main = sdk.setupMain(async ({ effects, started }) => {
+export const main = sdk.setupMain(async ({ effects }) => {
   console.info('Starting Frigate...')
 
   const conf = (await config.read().const(effects))!
@@ -31,19 +31,19 @@ export const main = sdk.setupMain(async ({ effects, started }) => {
     'main',
   )
 
-  // set watch on bitcoin .cookie file to restart daemon on changes
+  // watch bitcoin .cookie file to restart daemon on changes
   const cookie = await FileHelper.string(
     `${subcontainer.rootfs}/root/.bitcoin/.cookie`,
   )
     .read()
     .const(effects)
-  const [RPC_USERNAME, RPC_PASSWORD] = parseCookie(cookie)
+  const [_RPC_USERNAME, _RPC_PASSWORD] = parseCookie(cookie)
 
-  return sdk.Daemons.of(effects, started)
+  return sdk.Daemons.of(effects)
     .addDaemon('primary', {
       subcontainer: subcontainer,
       exec: {
-        // @todo env vars are overriden by Dockerfile defaults: see: https://github.com/Start9Labs/start-os/issues/3050
+        // @todo env vars are overridden by Dockerfile defaults: see: https://github.com/Start9Labs/start-os/issues/3050
         //command: sdk.useEntrypoint(),
         command: ['/opt/frigate/bin/frigate', '-n', 'mainnet'],
         env: {
@@ -51,25 +51,20 @@ export const main = sdk.setupMain(async ({ effects, started }) => {
         },
       },
       ready: {
-        display: 'Frigate Electrum Server',
+        display: i18n('Frigate Electrum Server'),
         fn: () =>
           sdk.healthCheck.checkPortListening(effects, 57001, {
-            successMessage: 'Frigate is running',
-            errorMessage: 'Frigate is syncing...',
+            successMessage: i18n('Frigate is running'),
+            errorMessage: i18n('Frigate is syncing...'),
           }),
       },
       requires: [],
     })
     .addHealthCheck('sync-progress', {
       ready: {
-        display: 'Frigate Sync Progress',
+        display: i18n('Frigate Sync Progress'),
         fn: async () => {
           try {
-            // const latestBlockHeight = await getLatestBlockHeight(
-            //   bitcoindUrl,
-            //   RPC_USERNAME,
-            //   RPC_PASSWORD,
-            // )
             const res = await subcontainer.exec([
               'sh',
               '-c',
@@ -81,13 +76,12 @@ export const main = sdk.setupMain(async ({ effects, started }) => {
               res.stdout !== ''
             ) {
               return {
-                //message: res.stdout.trim() + ` (latest block: ${latestBlockHeight})`,
                 message: res.stdout.trim(),
                 result: 'success',
               }
             } else {
               return {
-                message: 'Frigate has not yet indexed any blocks',
+                message: i18n('Frigate has not yet indexed any blocks'),
                 result: 'loading',
               }
             }
