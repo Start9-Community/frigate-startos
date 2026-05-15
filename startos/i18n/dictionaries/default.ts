@@ -27,8 +27,16 @@ const dict = {
   'Index Start Height': 211,
   'The block height from which Frigate should start indexing.': 212,
   'Script PubKey Cache Size': 213,
-  'The size of the Script PubKey cache in bytes (default 10,000,000).': 214,
+  'Size of the Script PubKey cache (default 10M ≈ 4GB RAM).': 214,
   Configuration: 215,
+  'Compute Backend': 216,
+  'GPU acceleration backend for Silent Payments scanning. AUTO detects and prefers GPU over CPU.': 217,
+  'Auto (prefer GPU)': 218,
+  'GPU only': 219,
+  'CPU only': 220,
+  'Batch Size': 221,
+  'Rows per GPU dispatch (default 300,000). Reduce if scanning hangs on older GPUs.': 222,
+  '10M (default)': 223,
 } as const
 
 /**

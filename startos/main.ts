@@ -1,5 +1,5 @@
 import { FileHelper } from '@start9labs/start-sdk'
-import { config } from './fileModels/config.json'
+import { config } from './fileModels/config.toml'
 import { sdk } from './sdk'
 import { i18n } from './i18n'
 import { parseCookie } from './utils'

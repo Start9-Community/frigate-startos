@@ -8,14 +8,14 @@ import {
   electrumServerByUrl,
   indexStartHeightDefault,
   bitcoindUrl,
-} from '../fileModels/config.json'
+  bitcoindZmqSequenceEndpoint,
+} from '../fileModels/config.toml'
 import { Variants } from '@start9labs/start-sdk/base/lib/actions/input/builder'
 
 const { InputSpec, Value } = sdk
 
 const inputSpec = InputSpec.of({
   electrumServer: Value.dynamicUnion(async ({ effects }) => {
-    // determine default server type and disabled options
     const installedPackages = await effects.getInstalledPackages()
     let serverType: ElectrumServerTypes = 'none'
     let disabled: ElectrumServerTypes[] = []
@@ -81,26 +81,50 @@ const inputSpec = InputSpec.of({
         max: null,
         default: indexStartHeightDefault,
       }),
-      scriptPubKeyCacheSize: Value.number({
+      scriptPubKeyCacheSize: Value.select({
         name: i18n('Script PubKey Cache Size'),
         description: i18n(
-          'The size of the Script PubKey cache in bytes (default 10,000,000).',
+          'Size of the Script PubKey cache (default 10M ≈ 4GB RAM).',
+        ),
+        values: {
+          '1M': '1M',
+          '5M': '5M',
+          '10M': i18n('10M (default)'),
+          '20M': '20M',
+          '50M': '50M',
+        },
+        default: '10M',
+      }),
+      computeBackend: Value.select({
+        name: i18n('Compute Backend'),
+        description: i18n(
+          'GPU acceleration backend for Silent Payments scanning. AUTO detects and prefers GPU over CPU.',
+        ),
+        values: {
+          AUTO: i18n('Auto (prefer GPU)'),
+          GPU: i18n('GPU only'),
+          CPU: i18n('CPU only'),
+        },
+        default: 'AUTO',
+      }),
+      batchSize: Value.number({
+        name: i18n('Batch Size'),
+        description: i18n(
+          'Rows per GPU dispatch (default 300,000). Reduce if scanning hangs on older GPUs.',
         ),
         required: true,
         integer: true,
-        min: 0,
+        min: 1,
         max: null,
-        default: 10000000,
+        default: 300000,
       }),
     }),
   ),
 })
 
 export const setConfig = sdk.Action.withInput(
-  // id
   'config',
 
-  // metadata
   async ({ effects }) => ({
     name: i18n('Configure Frigate'),
     description: i18n('Set or update Frigate configuration settings.'),
@@ -110,10 +134,8 @@ export const setConfig = sdk.Action.withInput(
     visibility: 'enabled',
   }),
 
-  // form input specification
   inputSpec,
 
-  // optionally pre-fill the input form
   async ({ effects }) => {
     let currentConfig = await config.read().once()
     if (!currentConfig) {
@@ -124,30 +146,45 @@ export const setConfig = sdk.Action.withInput(
     return {
       electrumServer: {
         selection:
-          electrumServerByUrl[currentConfig.backendElectrumServer] || 'none',
+          electrumServerByUrl[currentConfig.server.backendElectrumServer] ||
+          'none',
       },
       advanced: {
-        startIndexing: currentConfig.startIndexing,
-        indexStartHeight: currentConfig.indexStartHeight,
-        scriptPubKeyCacheSize: currentConfig.scriptPubKeyCacheSize,
+        startIndexing: true, // not stored in config.toml; always start indexing
+        indexStartHeight: currentConfig.index.startHeight,
+        scriptPubKeyCacheSize: (['1M','5M','10M','20M','50M'].includes(currentConfig.index.cacheSize)
+          ? currentConfig.index.cacheSize
+          : '10M') as '1M' | '5M' | '10M' | '20M' | '50M',
+        computeBackend: currentConfig.scan.computeBackend,
+        batchSize: currentConfig.scan.batchSize,
       },
     }
   },
 
-  // the execution function
   async ({ effects, input }) => {
     await config.merge(effects, {
-      coreServer: bitcoindUrl,
-      coreAuthType: 'COOKIE',
-      coreAuth: '',
-      coreDataDir: '/root/.bitcoin',
-      startIndexing: input.advanced.startIndexing,
-      indexStartHeight: input.advanced.indexStartHeight,
-      scriptPubKeyCacheSize: input.advanced.scriptPubKeyCacheSize,
-      backendElectrumServer:
-        electrumServers[
-          input.electrumServer.selection as ElectrumServerTypes
-        ] ?? '',
+      core: {
+        connect: true,
+        server: bitcoindUrl,
+        authType: 'COOKIE',
+        auth: '',
+        dataDir: '/root/.bitcoin',
+        zmqSequenceEndpoint: bitcoindZmqSequenceEndpoint,
+      },
+      index: {
+        startHeight: input.advanced.indexStartHeight,
+        cacheSize: input.advanced.scriptPubKeyCacheSize as string,
+      },
+      scan: {
+        computeBackend: input.advanced.computeBackend as 'AUTO' | 'GPU' | 'CPU',
+        batchSize: input.advanced.batchSize,
+      },
+      server: {
+        backendElectrumServer:
+          electrumServers[
+            input.electrumServer.selection as ElectrumServerTypes
+          ] ?? '',
+      },
     })
   },
 )
