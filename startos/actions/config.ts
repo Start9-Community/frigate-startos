@@ -152,7 +152,9 @@ export const setConfig = sdk.Action.withInput(
       advanced: {
         startIndexing: true, // not stored in config.toml; always start indexing
         indexStartHeight: currentConfig.index.startHeight,
-        scriptPubKeyCacheSize: (['1M','5M','10M','20M','50M'].includes(currentConfig.index.cacheSize)
+        scriptPubKeyCacheSize: (['1M', '5M', '10M', '20M', '50M'].includes(
+          currentConfig.index.cacheSize,
+        )
           ? currentConfig.index.cacheSize
           : '10M') as '1M' | '5M' | '10M' | '20M' | '50M',
         computeBackend: currentConfig.scan.computeBackend,

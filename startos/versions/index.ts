@@ -6,4 +6,4 @@ export const versionGraph = VersionGraph.of({
   other: [],
 })
 
-export const FRIGATE_VERSION = '1.5.0'
+export const FRIGATE_VERSION = '1.5.0.1'

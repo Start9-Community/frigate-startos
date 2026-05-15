@@ -1,15 +1,5 @@
 import { setupManifest } from '@start9labs/start-sdk'
-import { ImageSource } from '@start9labs/start-sdk/base/lib/osBindings'
-import { SDKImageInputSpec } from '@start9labs/start-sdk/base/lib/types/ManifestTypes'
 import { FRIGATE_VERSION } from '../versions'
-
-const BUILD = process.env.BUILD || ''
-
-type Arch = 'x86_64' | 'aarch64'
-const architectures: Arch[] =
-  BUILD === 'x86_64' ? ['x86_64']
-  : BUILD === 'aarch64' ? ['aarch64']
-  : ['x86_64', 'aarch64']
 
 export const manifest = setupManifest({
   id: 'frigate',
@@ -30,12 +20,14 @@ export const manifest = setupManifest({
   volumes: ['main'],
   images: {
     main: {
-      arch: architectures,
+      arch: ['x86_64', 'aarch64'],
+      nvidiaContainer: true,
       source: {
         dockerTag: 'ghcr.io/remcoros/frigate-docker:' + FRIGATE_VERSION,
-      } as ImageSource,
-    } as SDKImageInputSpec,
+      },
+    },
   },
+  hardwareAcceleration: true,
   alerts: {
     install: null,
     update: null,
