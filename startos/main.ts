@@ -39,6 +39,10 @@ export const main = sdk.setupMain(async ({ effects }) => {
     .const(effects)
   const [_RPC_USERNAME, _RPC_PASSWORD] = parseCookie(cookie)
 
+  // Keep track of the latest sync-progress line from the log file.
+  // Updated by the sync-progress health check and read by the primary ready fn.
+  let lastSyncLog: string | null = null
+
   return sdk.Daemons.of(effects)
     .addDaemon('primary', {
       subcontainer: subcontainer,
@@ -51,37 +55,63 @@ export const main = sdk.setupMain(async ({ effects }) => {
         },
       },
       ready: {
-        display: i18n('Frigate Electrum Server'),
-        fn: () =>
-          sdk.healthCheck.checkPortListening(effects, 57001, {
-            successMessage: i18n('Frigate is running'),
-            errorMessage: i18n('Frigate is syncing...'),
-          }),
+        display: i18n('Electrum Server'),
+        fn: async () => {
+          const result = await sdk.healthCheck.checkPortListening(
+            effects,
+            57001,
+            {
+              successMessage: i18n('Frigate is running'),
+              errorMessage: i18n('Frigate is syncing...'),
+            },
+          )
+
+          if (result.result === 'success') return result
+
+          return {
+            result: 'loading',
+            message: i18n('Frigate is syncing...'),
+          }
+        },
       },
       requires: [],
     })
     .addHealthCheck('sync-progress', {
       ready: {
-        display: i18n('Frigate Sync Progress'),
+        display: i18n('Sync Progress'),
         fn: async () => {
+          // If the port is open, Frigate is fully synced.
+          const portCheck = await sdk.healthCheck.checkPortListening(
+            effects,
+            57001,
+            {
+              successMessage: i18n('Fully synced'),
+              errorMessage: '',
+            },
+          )
+          if (portCheck.result === 'success') return portCheck
+
           try {
             const res = await subcontainer.exec([
               'sh',
               '-c',
-              `tac /root/.frigate/frigate.log | grep -m1 "Indexed .*block height" | sed 's/.*\\(Indexed.*\\)/\\1/'`,
+              `tac /root/.frigate/frigate.log | grep -m1 'Indexing progress:'`,
             ])
             if (
               res.exitCode === 0 &&
               typeof res.stdout === 'string' &&
               res.stdout !== ''
             ) {
+              // Extract "5409 / 240756 blocks (2.2%, height 715040)" from the log line
+              const match = res.stdout.match(/Indexing progress: (.+)/)
+              lastSyncLog = match ? match[1].trim() : res.stdout.trim()
               return {
-                message: res.stdout.trim(),
-                result: 'success',
+                message: lastSyncLog,
+                result: 'loading',
               }
             } else {
               return {
-                message: i18n('Frigate has not yet indexed any blocks'),
+                message: i18n('Frigate is syncing...'),
                 result: 'loading',
               }
             }
@@ -93,6 +123,6 @@ export const main = sdk.setupMain(async ({ effects }) => {
           }
         },
       },
-      requires: ['primary'],
+      requires: [],
     })
 })

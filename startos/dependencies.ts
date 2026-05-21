@@ -10,7 +10,7 @@ export const setDependencies = sdk.setupDependencies(async ({ effects }) => {
       kind: 'partial',
       value: {
         txindex: true,
-        prune: null,
+        prune: 0,
         zmqEnabled: true,
       },
     },
@@ -29,23 +29,23 @@ export const setDependencies = sdk.setupDependencies(async ({ effects }) => {
     currentDeps.electrs = {
       id: 'electrs',
       kind: 'running',
-      versionRange: '>=0.9.0',
-      healthChecks: ['sync'],
+      versionRange: '>=0.11.1',
+      healthChecks: ['electrs', 'sync'],
     }
   } else if (backendElectrumServer === electrumServers.fulcrum) {
     currentDeps.fulcrum = {
       id: 'fulcrum',
       kind: 'running',
-      versionRange: '>=2.0.0',
-      healthChecks: ['sync'],
+      versionRange: '>=2.1.0',
+      healthChecks: ['primary', 'sync-progress'],
     }
   }
 
   return {
     bitcoind: {
       kind: 'running',
-      versionRange: '>=29.1:1.0',
-      healthChecks: ['sync-progress'],
+      versionRange: '>=28.3',
+      healthChecks: ['bitcoind', 'sync-progress'],
     },
     ...currentDeps,
   }
