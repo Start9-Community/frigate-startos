@@ -2,14 +2,14 @@ export const DEFAULT_LANG = 'en_US'
 
 const dict = {
   // main.ts
-  'Frigate Electrum Server': 1,
   'Frigate is running': 2,
   'Frigate is syncing...': 3,
-  'Frigate Sync Progress': 4,
+  'Sync Progress': 4,
   'Frigate has not yet indexed any blocks': 5,
+  'Fully synced': 6,
 
   // interfaces.ts
-  Electrum: 100,
+  'Electrum (SSL)': 100,
   'Electrum server endpoint': 101,
 
   // actions/config.ts
