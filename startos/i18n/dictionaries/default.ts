@@ -9,7 +9,7 @@ const dict = {
   'Fully synced': 6,
 
   // interfaces.ts
-  Electrum: 100,
+  'Electrum (SSL)': 100,
   'Electrum server endpoint': 101,
 
   // actions/config.ts

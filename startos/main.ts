@@ -47,9 +47,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
     .addDaemon('primary', {
       subcontainer: subcontainer,
       exec: {
-        // @todo env vars are overridden by Dockerfile defaults: see: https://github.com/Start9Labs/start-os/issues/3050
-        //command: sdk.useEntrypoint(),
-        command: ['/opt/frigate/bin/frigate', '-n', 'mainnet'],
+        command: sdk.useEntrypoint(),
         env: {
           NETWORK: 'mainnet',
         },
@@ -59,7 +57,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         fn: async () => {
           const result = await sdk.healthCheck.checkPortListening(
             effects,
-            57001,
+            50001,
             {
               successMessage: i18n('Frigate is running'),
               errorMessage: i18n('Frigate is syncing...'),
@@ -83,7 +81,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
           // If the port is open, Frigate is fully synced.
           const portCheck = await sdk.healthCheck.checkPortListening(
             effects,
-            57001,
+            50001,
             {
               successMessage: i18n('Fully synced'),
               errorMessage: '',
