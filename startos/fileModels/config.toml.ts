@@ -1,7 +1,9 @@
 import { z, FileHelper, T } from '@start9labs/start-sdk'
 import { sdk } from '../sdk'
 
-export const indexStartHeightDefault = 709632 // taproot activation height on mainnet (Taproot activation)
+// Default start height used by this package. Upstream default is 709632 (Taproot activation on mainnet).
+// We use a more recent height to speed up initial sync for typical users.
+export const indexStartHeightDefault = 840000
 export const bitcoindUrl = 'http://bitcoind.startos:8332'
 export const bitcoindZmqSequenceEndpoint = 'tcp://bitcoind.startos:28333'
 export type ElectrumServerTypes = 'fulcrum' | 'electrs' | 'none'
