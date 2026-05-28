@@ -37,11 +37,21 @@
 | Property      | Value                                                                    |
 | ------------- | ------------------------------------------------------------------------ |
 | Image         | `ghcr.io/remcoros/frigate-docker` (custom image, see frigate-docker repo) |
-| Architectures | x86_64, aarch64                                                          |
+| Architectures | x86_64, aarch64 for the default image; x86_64 for AMD                    |
 | Entrypoint    | Upstream entrypoint (unmodified)                                         |
-| GPU runtime   | Nvidia container runtime enabled (`nvidiaContainer: true`)               |
+| GPU runtime   | NVIDIA runtime for the NVIDIA variant; OpenCL runtimes in the image      |
 
-Hardware acceleration is declared (`hardwareAcceleration: true`). On systems with a supported Nvidia GPU, StartOS uses the Nvidia container runtime. AMD GPU support is not available (see [Limitations](#limitations-and-differences)).
+Hardware acceleration is declared (`hardwareAcceleration: true`). StartOS variants with hardware requirements select the right runtime:
+
+| StartOS variant | Docker tag suffix | Hardware requirement |
+| ---------------- | ----------------- | -------------------- |
+| `generic`        | none              | none                 |
+| `nvidia`         | none              | NVIDIA GPU           |
+| `intel-i915`     | none              | Intel GPU, i915      |
+| `intel-xe`       | none              | Intel GPU, xe        |
+| `amd`            | `-amd`            | AMD GPU, amdgpu      |
+
+The default Docker image bundles Intel OpenCL on x86_64 and supports CPU/NVIDIA/Intel. The AMD variant uses the `-amd` Docker tag with Mesa Rusticl OpenCL (`radeonsi`) bundled.
 
 ---
 
@@ -147,11 +157,10 @@ Only one backend Electrum server (Fulcrum or Electrs) is used at a time, based o
 
 ## Limitations and Differences
 
-1. **AMD GPU not supported.** The image does not bundle the AMD ROCm/OpenCL runtime, and there is no mechanism to mount the host OpenCL ICD into the container. AMD GPU scanning falls back to CPU automatically.
-2. **No SSL certificate configuration.** SSL termination uses the StartOS-managed certificate; manual SSL cert/key configuration from upstream is not exposed.
-3. **Config file not directly editable.** `config.toml` is managed by StartOS. Use the Configure action to change settings.
-4. **Single backend Electrum server.** Only one backend (Fulcrum or Electrs) can be active at a time.
-5. **Experimental upstream.** Frigate is an experimental project. Silent Payments support is still evolving upstream.
+1. **No SSL certificate configuration.** SSL termination uses the StartOS-managed certificate; manual SSL cert/key configuration from upstream is not exposed.
+2. **Config file not directly editable.** `config.toml` is managed by StartOS. Use the Configure action to change settings.
+3. **Single backend Electrum server.** Only one backend (Fulcrum or Electrs) can be active at a time.
+4. **Experimental upstream.** Frigate is an experimental project. Silent Payments support is still evolving upstream.
 
 ---
 
@@ -178,6 +187,23 @@ package_id: frigate
 architectures:
   - x86_64
   - aarch64
+hardware_acceleration: true
+variants:
+  generic:
+    docker_tag_suffix: null
+    gpu_driver: null
+  nvidia:
+    docker_tag_suffix: null
+    gpu_driver: nvidia
+  intel-i915:
+    docker_tag_suffix: null
+    gpu_driver: i915
+  intel-xe:
+    docker_tag_suffix: null
+    gpu_driver: xe
+  amd:
+    docker_tag_suffix: -amd
+    gpu_driver: amdgpu
 volumes:
   main: /root/.frigate
 ports:

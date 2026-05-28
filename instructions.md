@@ -23,6 +23,6 @@ Frigate can use a GPU to accelerate Silent Payments scanning. The compute backen
 
 - **Nvidia** - should work. Not tested by the package author (no test hardware available). Reports welcome.
 - **Intel** - should work. Not tested by the package author (no test hardware available). Reports welcome.
-- **AMD** - not supported. The AMD ROCm runtime is not bundled in the image. If you need AMD GPU support, please open an issue at [github.com/remcoros/frigate-startos](https://github.com/remcoros/frigate-startos).
+- **AMD** - should work using the AMD image variant with Mesa Rusticl OpenCL (`radeonsi`) bundled. Not tested by the package author (no test hardware available). Reports welcome.
 
 Without a supported GPU, Frigate falls back to CPU automatically.
