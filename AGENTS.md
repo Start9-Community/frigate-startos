@@ -2,17 +2,18 @@
 
 ## How the upstream version is pulled
 
-- `FRIGATE_VERSION` in `startos/versions/index.ts` sets both the Docker image tag and the ExVer version string
+- `FRIGATE_VERSION` in `startos/versions/current.ts` sets both the Docker image tag and the ExVer version string
 - Docker image: `ghcr.io/remcoros/frigate-docker:<version>` (maintained separately at `remcoros/frigate-docker`)
-- When bumping upstream: update `FRIGATE_VERSION` in `index.ts`, update the ExVer version string in the version file, and rebuild the Docker image in `frigate-docker` first
+- Two Docker image variants: default (`<version>`) for generic/nvidia, and `<version>-amd` for the AMD variant
+- When bumping upstream: update `FRIGATE_VERSION` in `current.ts`, update the ExVer version string there, and rebuild the Docker images in `frigate-docker` first
 
 ## Key files
 
 | File | Purpose |
 | --- | --- |
-| `startos/manifest/index.ts` | Manifest: id, images, volumes, dependencies, hardware acceleration |
-| `startos/versions/index.ts` | `FRIGATE_VERSION` constant and version graph |
-| `startos/versions/v*.ts` | ExVer version info and migrations |
+| `startos/manifest/index.ts` | Manifest: id, images (3 variants: generic/nvidia/amd), volumes, dependencies, hardware acceleration |
+| `startos/versions/current.ts` | `FRIGATE_VERSION` constant and current ExVer version info |
+| `startos/versions/index.ts` | Exports `current` and `versionGraph` |
 | `startos/fileModels/config.toml.ts` | Config file model (zod-typed), default values |
 | `startos/actions/config.ts` | Configure Frigate action (user-facing settings) |
 | `startos/dependencies.ts` | Dependency requirements and bitcoind autoconfig task |
@@ -38,11 +39,9 @@ Run `npm run prettier` before committing when available.
 
 ## Version bump checklist
 
-1. Rebuild and push `ghcr.io/remcoros/frigate-docker:<new-version>`
-2. Update `FRIGATE_VERSION` in `startos/versions/index.ts`
-3. Rename `startos/versions/v<old>.ts` to `v<new>.ts`, update `version` and `releaseNotes`
-4. Update the import and export in `startos/versions/index.ts`
-5. Run `npm run check` and `make x86`
+1. Update `FRIGATE_VERSION` in `startos/versions/current.ts`
+2. Update the ExVer `version` and `releaseNotes` in `startos/versions/current.ts`
+3. Run `npm run check` and `make x86`
 
 ## Commit style
 
