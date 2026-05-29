@@ -1,5 +1,57 @@
 import { setupManifest } from '@start9labs/start-sdk'
+import { DeviceFilter } from '@start9labs/start-sdk/base/lib/osBindings/DeviceFilter'
 import { FRIGATE_VERSION } from '../versions'
+
+const variant = process.env.VARIANT || 'generic'
+
+type Mutable<T> = { -readonly [K in keyof T]: Mutable<T[K]> }
+const mutable = <T>(value: T): Mutable<T> => value as Mutable<T>
+
+const defaultImage = {
+  dockerTag: 'ghcr.io/remcoros/frigate-docker:' + FRIGATE_VERSION,
+}
+
+const amdImage = {
+  dockerTag: 'ghcr.io/remcoros/frigate-docker:' + FRIGATE_VERSION + '-amd',
+}
+
+const imageConfigs = {
+  generic: {
+    arch: ['x86_64', 'aarch64'],
+    source: defaultImage,
+  },
+  nvidia: {
+    arch: ['x86_64'],
+    nvidiaContainer: true,
+    source: defaultImage,
+  },
+  amd: {
+    arch: ['x86_64'],
+    source: amdImage,
+  },
+} as const
+
+const deviceRequirements: Record<string, DeviceFilter[]> = {
+  generic: [],
+  nvidia: [
+    {
+      class: 'display',
+      product: null,
+      vendor: null,
+      driver: 'nvidia',
+      description: 'An NVIDIA GPU',
+    },
+  ],
+  amd: [
+    {
+      class: 'display',
+      product: null,
+      vendor: null,
+      driver: 'amdgpu',
+      description: 'An AMD GPU supported by Mesa Rusticl/radeonsi',
+    },
+  ],
+}
 
 export const manifest = setupManifest({
   id: 'frigate',
@@ -19,15 +71,15 @@ export const manifest = setupManifest({
   },
   volumes: ['main'],
   images: {
-    main: {
-      arch: ['x86_64', 'aarch64'],
-      nvidiaContainer: true,
-      source: {
-        dockerTag: 'ghcr.io/remcoros/frigate-docker:' + FRIGATE_VERSION,
-      },
-    },
+    main: mutable(
+      imageConfigs[variant as keyof typeof imageConfigs] ??
+        imageConfigs.generic,
+    ),
   },
   hardwareAcceleration: true,
+  hardwareRequirements: {
+    device: deviceRequirements[variant] ?? [],
+  },
   alerts: {
     install: null,
     update: null,
