@@ -1,9 +1,9 @@
 import { VersionGraph } from '@start9labs/start-sdk'
-import { current } from './current'
+import { current, FRIGATE_VERSION } from './current'
+
+export { FRIGATE_VERSION }
 
 export const versionGraph = VersionGraph.of({
   current,
   other: [],
 })
-
-export const FRIGATE_VERSION = '1.5.2.1'
