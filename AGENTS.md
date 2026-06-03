@@ -46,4 +46,4 @@ Run `npm run prettier` before committing when available.
 ## Commit style
 
 Conventional commits. Branch names: `update/<version>`, `feat/<name>`, `fix/<name>`, `chore/<name>`.
-Do not push or tag without explicit instruction from Remco.
+

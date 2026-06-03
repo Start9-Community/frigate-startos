@@ -2,12 +2,11 @@ import { FileHelper } from '@start9labs/start-sdk'
 import { config } from './fileModels/config.toml'
 import { sdk } from './sdk'
 import { i18n } from './i18n'
-import { parseCookie } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   console.info('Starting Frigate...')
 
-  const conf = (await config.read().const(effects))!
+  await config.read().const(effects)
 
   const subcontainer = await sdk.SubContainer.of(
     effects,
@@ -32,15 +31,14 @@ export const main = sdk.setupMain(async ({ effects }) => {
   )
 
   // watch bitcoin .cookie file to restart daemon on changes
-  const cookie = await FileHelper.string(
+  await FileHelper.string(
     `${subcontainer.rootfs}/root/.bitcoin/.cookie`,
   )
     .read()
-    .const(effects)
-  const [_RPC_USERNAME, _RPC_PASSWORD] = parseCookie(cookie)
+    .const(effects)  
 
-  // Keep track of the latest sync-progress line from the log file.
-  // Updated by the sync-progress health check and read by the primary ready fn.
+  // Keep track of the latest sync-progress line from stdout.
+  // Captured by onStdout on the primary daemon; read by the sync-progress health check.
   let lastSyncLog: string | null = null
 
   return sdk.Daemons.of(effects)
@@ -50,6 +48,18 @@ export const main = sdk.setupMain(async ({ effects }) => {
         command: sdk.useEntrypoint(),
         env: {
           NETWORK: 'mainnet',
+        },
+        onStdout: (chunk) => {
+          const text = Buffer.isBuffer(chunk)
+            ? chunk.toString('utf8')
+            : String(chunk)
+
+          console.log(text)
+          
+          const match = text.match(/Indexing progress: (.+)/)
+          if (match) {
+            lastSyncLog = match[1].trim()
+          }
         },
       },
       ready: {
@@ -89,35 +99,16 @@ export const main = sdk.setupMain(async ({ effects }) => {
           )
           if (portCheck.result === 'success') return portCheck
 
-          try {
-            const res = await subcontainer.exec([
-              'sh',
-              '-c',
-              `tac /root/.frigate/frigate.log | grep -m1 'Indexing progress:'`,
-            ])
-            if (
-              res.exitCode === 0 &&
-              typeof res.stdout === 'string' &&
-              res.stdout !== ''
-            ) {
-              // Extract "5409 / 240756 blocks (2.2%, height 715040)" from the log line
-              const match = res.stdout.match(/Indexing progress: (.+)/)
-              lastSyncLog = match ? match[1].trim() : res.stdout.trim()
-              return {
-                message: lastSyncLog,
-                result: 'loading',
-              }
-            } else {
-              return {
-                message: i18n('Frigate is syncing...'),
-                result: 'loading',
-              }
-            }
-          } catch (err) {
+          if (!lastSyncLog) {
             return {
-              message: `Error fetching block height: ${err}`,
-              result: 'failure',
+              message: i18n('Frigate is syncing...'),
+              result: 'loading',
             }
+          }
+
+          return {
+            message: lastSyncLog,
+            result: 'loading',
           }
         },
       },
