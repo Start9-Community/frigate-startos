@@ -12,7 +12,7 @@ const defaultImage = {
 }
 
 const amdImage = {
-  dockerTag: 'ghcr.io/remcoros/frigate-docker:' + FRIGATE_VERSION + '-amd',
+  dockerTag: 'ghcr.io/remcoros/frigate-docker:' + FRIGATE_VERSION + '-rocm',
 }
 
 const imageConfigs = {
