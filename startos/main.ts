@@ -1,14 +1,77 @@
 import { FileHelper } from '@start9labs/start-sdk'
+import {
+  rpcHostId,
+  rpcPort,
+  zmqHostId,
+  zmqPortTransaction,
+} from 'bitcoind-startos/startos/utils'
+import {
+  electrumHostId as electrsHostId,
+  port as electrsPort,
+} from 'electrs-startos/startos/utils'
+import {
+  electrumPort as fulcrumPort,
+  mainHostId as fulcrumHostId,
+} from 'fulcrum-startos/startos/utils'
 import { config } from './fileModels/config.toml'
+import { store } from './fileModels/store.json'
 import { sdk } from './sdk'
 import { i18n } from './i18n'
+import { bridgeAddress } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   console.info('Starting Frigate...')
 
-  await config.read().const(effects)
+  // Watch only user-controlled settings. Address rewrites below do not restart
+  // main unless the selected provider or its assigned bridge port changes.
+  await config.read(({ index, scan }) => ({ index, scan })).const(effects)
 
-  const subcontainer = await sdk.SubContainer.of(
+  const selection =
+    (await store.read((value) => value.electrumServer).const(effects)) ?? 'none'
+  const rpcAddress = await bridgeAddress(effects, {
+    packageId: 'bitcoind',
+    hostId: rpcHostId,
+    internalPort: rpcPort,
+  }).const()
+  const zmqAddress = await bridgeAddress(effects, {
+    packageId: 'bitcoind',
+    hostId: zmqHostId,
+    internalPort: zmqPortTransaction,
+  }).const()
+  const backendAddress =
+    selection === 'fulcrum'
+      ? await bridgeAddress(effects, {
+          packageId: 'fulcrum',
+          hostId: fulcrumHostId,
+          internalPort: fulcrumPort,
+        }).const()
+      : selection === 'electrs'
+        ? await bridgeAddress(effects, {
+            packageId: 'electrs',
+            hostId: electrsHostId,
+            internalPort: electrsPort,
+          }).const()
+        : null
+
+  await config.merge(
+    effects,
+    {
+      core: {
+        connect: true,
+        server: rpcAddress ? `http://${rpcAddress}` : undefined,
+        authType: 'COOKIE',
+        auth: '',
+        dataDir: '/root/.bitcoin',
+        zmqSequenceEndpoint: zmqAddress ? `tcp://${zmqAddress}` : undefined,
+      },
+      server: {
+        backendElectrumServer: backendAddress ? `tcp://${backendAddress}` : '',
+      },
+    },
+    { allowWriteAfterConst: true },
+  )
+
+  const subcontainer = await sdk.SubContainer.eager(
     effects,
     {
       imageId: 'main',
@@ -31,11 +94,9 @@ export const main = sdk.setupMain(async ({ effects }) => {
   )
 
   // watch bitcoin .cookie file to restart daemon on changes
-  await FileHelper.string(
-    `${subcontainer.rootfs}/root/.bitcoin/.cookie`,
-  )
+  await FileHelper.string(`${subcontainer.rootfs}/root/.bitcoin/.cookie`)
     .read()
-    .const(effects)  
+    .const(effects)
 
   // Keep track of the latest sync-progress line from stdout.
   // Captured by onStdout on the primary daemon; read by the sync-progress health check.
@@ -55,7 +116,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
             : String(chunk)
 
           console.log(text)
-          
+
           const match = text.match(/Indexing progress: (.+)/)
           if (match) {
             lastSyncLog = match[1].trim()

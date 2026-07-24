@@ -6,16 +6,19 @@ import { restoreInit } from '../backups'
 import { setDependencies } from '../dependencies'
 import { createDefaultConfig } from '../fileModels/config.toml'
 import { setConfig } from '../actions/config'
-import * as T from '@start9labs/start-sdk/base/lib/types'
-import { InitKind } from '@start9labs/start-sdk/base/lib/inits/setupInit'
+import { ensureStore } from '../fileModels/store.json'
+import { i18n } from '../i18n'
+
+type InitKind = 'install' | 'update' | 'restore' | null
 
 async function setupConfig(effects: T.Effects, kind: InitKind) {
   // Always ensure config exists (safe to run on install and update)
   await createDefaultConfig(effects)
+  await ensureStore(effects)
 
   if (kind === 'install') {
     await sdk.action.createOwnTask(effects, setConfig, 'critical', {
-      reason: 'Configure Frigate settings',
+      reason: i18n('Configure Frigate settings'),
     })
   }
 }
@@ -30,3 +33,4 @@ export const init = sdk.setupInit(
 )
 
 export const uninit = sdk.setupUninit(versionGraph)
+import { T } from '@start9labs/start-sdk'

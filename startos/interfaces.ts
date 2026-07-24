@@ -1,9 +1,10 @@
 import { sdk } from './sdk'
 import { i18n } from './i18n'
+import { electrumHostId, electrumPort } from './constants'
 
 export const setInterfaces = sdk.setupInterfaces(async ({ effects }) => {
-  const electrumMulti = sdk.MultiHost.of(effects, 'electrum')
-  const electrumMultiOrigin = await electrumMulti.bindPort(50001, {
+  const electrumMulti = sdk.MultiHost.of(effects, electrumHostId)
+  const electrumMultiOrigin = await electrumMulti.bindPort(electrumPort, {
     protocol: null,
     addSsl: {
       preferredExternalPort: 50002,

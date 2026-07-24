@@ -3,22 +3,18 @@ import { i18n } from '../i18n'
 import {
   createDefaultConfig,
   config,
-  ElectrumServerTypes,
-  electrumServers,
-  electrumServerByUrl,
+  ElectrumServerType,
   indexStartHeightDefault,
-  bitcoindUrl,
-  bitcoindZmqSequenceEndpoint,
 } from '../fileModels/config.toml'
-import { Variants } from '@start9labs/start-sdk/base/lib/actions/input/builder'
+import { ensureStore, store } from '../fileModels/store.json'
 
-const { InputSpec, Value } = sdk
+const { InputSpec, Value, Variants } = sdk
 
 const inputSpec = InputSpec.of({
   electrumServer: Value.dynamicUnion(async ({ effects }) => {
     const installedPackages = await effects.getInstalledPackages()
-    let serverType: ElectrumServerTypes = 'none'
-    let disabled: ElectrumServerTypes[] = []
+    let serverType: ElectrumServerType = 'none'
+    const disabled: ElectrumServerType[] = []
 
     if (installedPackages.includes('electrs')) {
       serverType = 'electrs'
@@ -142,12 +138,12 @@ export const setConfig = sdk.Action.withInput(
       await createDefaultConfig(effects)
       currentConfig = (await config.read().once())!
     }
+    await ensureStore(effects)
+    const currentStore = (await store.read().once())!
 
     return {
       electrumServer: {
-        selection:
-          electrumServerByUrl[currentConfig.server.backendElectrumServer] ||
-          'none',
+        selection: currentStore.electrumServer,
       },
       advanced: {
         startIndexing: true, // not stored in config.toml; always start indexing
@@ -164,15 +160,10 @@ export const setConfig = sdk.Action.withInput(
   },
 
   async ({ effects, input }) => {
+    await store.merge(effects, {
+      electrumServer: input.electrumServer.selection,
+    })
     await config.merge(effects, {
-      core: {
-        connect: true,
-        server: bitcoindUrl,
-        authType: 'COOKIE',
-        auth: '',
-        dataDir: '/root/.bitcoin',
-        zmqSequenceEndpoint: bitcoindZmqSequenceEndpoint,
-      },
       index: {
         startHeight: input.advanced.indexStartHeight,
         cacheSize: input.advanced.scriptPubKeyCacheSize as string,
@@ -180,12 +171,6 @@ export const setConfig = sdk.Action.withInput(
       scan: {
         computeBackend: input.advanced.computeBackend as 'AUTO' | 'GPU' | 'CPU',
         batchSize: input.advanced.batchSize,
-      },
-      server: {
-        backendElectrumServer:
-          electrumServers[
-            input.electrumServer.selection as ElectrumServerTypes
-          ] ?? '',
       },
     })
   },

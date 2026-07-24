@@ -37,6 +37,10 @@ const dict = {
   'Batch Size': 221,
   'Rows per GPU dispatch (default 300,000). Reduce if scanning hangs on older GPUs.': 222,
   '10M (default)': 223,
+
+  // dependencies.ts and init/index.ts
+  'Frigate requires txindex, pruning disabled, and ZMQ enabled in Bitcoin Core.': 300,
+  'Configure Frigate settings': 301,
 } as const
 
 /**
