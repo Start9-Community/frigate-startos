@@ -4,38 +4,34 @@ import { sdk } from '../sdk'
 // Default start height used by this package. Upstream default is 709632 (Taproot activation on mainnet).
 // We use a more recent height to speed up initial sync for typical users.
 export const indexStartHeightDefault = 840000
-export const bitcoindUrl = 'http://bitcoind.startos:8332'
-export const bitcoindZmqSequenceEndpoint = 'tcp://bitcoind.startos:28333'
-export type ElectrumServerTypes = 'fulcrum' | 'electrs' | 'none'
-export const electrumServers: Record<ElectrumServerTypes, string> = {
+export type ElectrumServerType = 'fulcrum' | 'electrs' | 'none'
+export const legacyElectrumServers: Record<ElectrumServerType, string> = {
   fulcrum: 'tcp://fulcrum.startos:50001',
   electrs: 'tcp://electrs.startos:50001',
   none: '',
 }
-export const electrumServerByUrl = Object.fromEntries(
-  Object.entries(electrumServers).map(([key, value]) => [value, key]),
-) as Record<string, ElectrumServerTypes>
+export const legacyElectrumServerByUrl = Object.fromEntries(
+  Object.entries(legacyElectrumServers).map(([key, value]) => [value, key]),
+) as Record<string, ElectrumServerType>
 
 // Matches Frigate's native config.toml structure
 const shape = z.object({
   core: z
     .object({
       connect: z.boolean().catch(true),
-      server: z.string().catch(bitcoindUrl),
+      server: z.string().optional().catch(undefined),
       authType: z
         .union([z.literal('USERPASS'), z.literal('COOKIE')])
         .catch('COOKIE' as const),
       auth: z.string().catch(''),
       dataDir: z.string().catch('/root/.bitcoin'),
-      zmqSequenceEndpoint: z.string().catch(bitcoindZmqSequenceEndpoint),
+      zmqSequenceEndpoint: z.string().optional().catch(undefined),
     })
     .catch({
       connect: true,
-      server: bitcoindUrl,
       authType: 'COOKIE' as const,
       auth: '',
       dataDir: '/root/.bitcoin',
-      zmqSequenceEndpoint: bitcoindZmqSequenceEndpoint,
     }),
   index: z
     .object({
@@ -82,11 +78,9 @@ export const createDefaultConfig = async (effects: T.Effects) => {
     await config.write(effects, {
       core: {
         connect: true,
-        server: bitcoindUrl,
         authType: 'COOKIE',
         auth: '',
         dataDir: '/root/.bitcoin',
-        zmqSequenceEndpoint: bitcoindZmqSequenceEndpoint,
       },
       index: {
         startHeight: indexStartHeightDefault,

@@ -1,5 +1,6 @@
 import { T } from '@start9labs/start-sdk'
-import { config, electrumServers } from './fileModels/config.toml'
+import { store } from './fileModels/store.json'
+import { i18n } from './i18n'
 import { sdk } from './sdk'
 import { autoconfig } from 'bitcoind-startos/startos/actions/config/autoconfig'
 
@@ -8,31 +9,39 @@ export const setDependencies = sdk.setupDependencies(async ({ effects }) => {
   await sdk.action.createTask(effects, 'bitcoind', autoconfig, 'critical', {
     input: {
       kind: 'partial',
-      value: {
+      accept: [
+        {
+          txindex: true,
+          prune: 0,
+          zmqEnabled: true,
+        },
+      ],
+      set: {
         txindex: true,
         prune: 0,
         zmqEnabled: true,
       },
     },
-    reason:
+    reason: i18n(
       'Frigate requires txindex, pruning disabled, and ZMQ enabled in Bitcoin Core.',
+    ),
     when: { condition: 'input-not-matches', once: false },
   })
 
   let currentDeps = {} as Record<'electrs' | 'fulcrum', T.DependencyRequirement>
 
-  const backendElectrumServer = await config
-    .read((e) => e.server.backendElectrumServer)
+  const backendElectrumServer = await store
+    .read((value) => value.electrumServer)
     .const(effects)
 
-  if (backendElectrumServer === electrumServers.electrs) {
+  if (backendElectrumServer === 'electrs') {
     currentDeps.electrs = {
       id: 'electrs',
       kind: 'running',
       versionRange: '>=0.11.1',
       healthChecks: ['electrs', 'sync'],
     }
-  } else if (backendElectrumServer === electrumServers.fulcrum) {
+  } else if (backendElectrumServer === 'fulcrum') {
     currentDeps.fulcrum = {
       id: 'fulcrum',
       kind: 'running',

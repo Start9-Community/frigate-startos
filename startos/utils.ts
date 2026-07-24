@@ -1,3 +1,28 @@
+import { T } from '@start9labs/start-sdk'
+import { sdk } from './sdk'
+export { electrumHostId, electrumPort } from './constants'
+
+export function bridgeAddress(
+  effects: T.Effects,
+  opts: { packageId: string; hostId: string; internalPort: number },
+) {
+  const watchable = async () => {
+    const osIp = await sdk.getOsIp(effects)
+    return sdk.host.get(
+      effects,
+      { packageId: opts.packageId, hostId: opts.hostId },
+      (host) => {
+        const port = host?.bindings[opts.internalPort]?.net.assignedPort
+        return port == null ? null : `${osIp}:${port}`
+      },
+    )
+  }
+  return {
+    const: async () => (await watchable()).const(),
+    once: async () => (await watchable()).once(),
+  }
+}
+
 export function parseCookie(cookie: string | null): [string, string] {
   const parts = cookie?.trim().split(':')
   if (!parts || parts.length !== 2) {

@@ -88,10 +88,10 @@ Frigate is configured through the **Configure Frigate** action, which writes `co
 | Setting                    | Value                           | Reason                                |
 | -------------------------- | ------------------------------- | ------------------------------------- |
 | `core.connect`             | `true`                          | Required for Bitcoin Core integration |
-| `core.server`              | `http://bitcoind.startos:8332`  | StartOS internal Bitcoin Core address |
+| `core.server`              | Dynamically resolved             | Live StartOS bridge address            |
 | `core.authType`            | `COOKIE`                        | Cookie-based auth via mounted volume  |
 | `core.dataDir`             | `/root/.bitcoin`                | Mounted Bitcoin Core volume           |
-| `core.zmqSequenceEndpoint` | `tcp://bitcoind.startos:28333`  | ZMQ sequence endpoint                 |
+| `core.zmqSequenceEndpoint` | Dynamically resolved             | Live ZMQ sequence binding              |
 
 ### Configurable via Action
 
@@ -149,7 +149,7 @@ The sync-progress check reads `frigate.log` for `Indexing progress:` lines and r
 | fulcrum    | No       | Backend Electrum server (recommended); must be synced        |
 | electrs    | No       | Alternative backend Electrum server; must be synced          |
 
-Only one backend Electrum server (Fulcrum or Electrs) is used at a time, based on the Configure action selection.
+Only one backend Electrum server (Fulcrum or Electrs) is used at a time. StartOS stores that selection separately and resolves the provider's current assigned bridge port, so reinstalls and port collisions heal without hard-coded `.startos` addresses.
 
 ---
 

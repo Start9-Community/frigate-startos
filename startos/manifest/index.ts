@@ -1,5 +1,4 @@
-import { setupManifest } from '@start9labs/start-sdk'
-import { DeviceFilter } from '@start9labs/start-sdk/base/lib/osBindings/DeviceFilter'
+import { setupManifest, T } from '@start9labs/start-sdk'
 import { FRIGATE_VERSION } from '../versions'
 
 const variant = process.env.VARIANT || 'generic'
@@ -31,7 +30,7 @@ const imageConfigs = {
   },
 } as const
 
-const deviceRequirements: Record<string, DeviceFilter[]> = {
+const deviceRequirements: Record<string, T.DeviceFilter[]> = {
   generic: [],
   nvidia: [
     {
@@ -56,10 +55,9 @@ const deviceRequirements: Record<string, DeviceFilter[]> = {
 export const manifest = setupManifest({
   id: 'frigate',
   title: 'Frigate Electrum Server',
-  license: 'Apache 2.0',
+  license: 'Apache-2.0',
   packageRepo: 'https://github.com/remcoros/frigate-startos',
   upstreamRepo: 'https://github.com/sparrowwallet/frigate',
-  supportSite: 'https://github.com/sparrowwallet/frigate/issues',
   marketingUrl: 'https://github.com/sparrowwallet/frigate',
   donationUrl: 'https://sparrowwallet.com/donate/',
   description: {
@@ -79,14 +77,6 @@ export const manifest = setupManifest({
   hardwareAcceleration: true,
   hardwareRequirements: {
     device: deviceRequirements[variant] ?? [],
-  },
-  alerts: {
-    install: null,
-    update: null,
-    uninstall: null,
-    restore: null,
-    start: null,
-    stop: null,
   },
   dependencies: {
     bitcoind: {
