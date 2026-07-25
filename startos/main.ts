@@ -17,7 +17,6 @@ import { config } from './fileModels/config.toml'
 import { store } from './fileModels/store.json'
 import { sdk } from './sdk'
 import { i18n } from './i18n'
-import { bridgeAddress } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   console.info('Starting Frigate...')
@@ -28,29 +27,38 @@ export const main = sdk.setupMain(async ({ effects }) => {
 
   const selection =
     (await store.read((value) => value.electrumServer).const(effects)) ?? 'none'
-  const rpcAddress = await bridgeAddress(effects, {
-    packageId: 'bitcoind',
-    hostId: rpcHostId,
-    internalPort: rpcPort,
-  }).const()
-  const zmqAddress = await bridgeAddress(effects, {
-    packageId: 'bitcoind',
-    hostId: zmqHostId,
-    internalPort: zmqPortTransaction,
-  }).const()
+  const rpcAddress = await sdk.host
+    .getBridgeAddress(effects, {
+      packageId: 'bitcoind',
+      hostId: rpcHostId,
+      internalPort: rpcPort,
+      ssl: false,
+    })
+    .const()
+  const zmqAddress = await sdk.host
+    .getBridgeAddress(effects, {
+      packageId: 'bitcoind',
+      hostId: zmqHostId,
+      internalPort: zmqPortTransaction,
+    })
+    .const()
   const backendAddress =
     selection === 'fulcrum'
-      ? await bridgeAddress(effects, {
-          packageId: 'fulcrum',
-          hostId: fulcrumHostId,
-          internalPort: fulcrumPort,
-        }).const()
+      ? await sdk.host
+          .getBridgeAddress(effects, {
+            packageId: 'fulcrum',
+            hostId: fulcrumHostId,
+            internalPort: fulcrumPort,
+          })
+          .const()
       : selection === 'electrs'
-        ? await bridgeAddress(effects, {
-            packageId: 'electrs',
-            hostId: electrsHostId,
-            internalPort: electrsPort,
-          }).const()
+        ? await sdk.host
+            .getBridgeAddress(effects, {
+              packageId: 'electrs',
+              hostId: electrsHostId,
+              internalPort: electrsPort,
+            })
+            .const()
         : null
 
   await config.merge(

@@ -3,18 +3,18 @@ import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
 export const FRIGATE_VERSION = '1.5.3.3'
 
 export const current = VersionInfo.of({
-  version: '1.5.3:5',
+  version: '1.5.3:6',
   releaseNotes: {
     en_US:
-      'Adds StartOS 0.4.0-beta.10 and Start SDK 2 compatibility with dynamic Bitcoin and Electrum provider routing.',
+      'Updates Start SDK to 2.0.9, deduplicates SDK copies in package dependencies, and resolves connected service addresses more reliably.',
     es_ES:
-      'Añade compatibilidad con StartOS 0.4.0-beta.10 y Start SDK 2 con enrutamiento dinámico de proveedores Bitcoin y Electrum.',
+      'Actualiza Start SDK a 2.0.9, elimina copias duplicadas del SDK en las dependencias del paquete y resuelve de forma más fiable las direcciones de los servicios conectados.',
     de_DE:
-      'Fügt Kompatibilität mit StartOS 0.4.0-beta.10 und Start SDK 2 sowie dynamisches Routing für Bitcoin- und Electrum-Anbieter hinzu.',
+      'Aktualisiert das Start SDK auf 2.0.9, entfernt doppelte SDK-Kopien in den Paketabhängigkeiten und ermittelt die Adressen verbundener Dienste zuverlässiger.',
     pl_PL:
-      'Dodaje zgodność ze StartOS 0.4.0-beta.10 i Start SDK 2 oraz dynamiczny routing dostawców Bitcoin i Electrum.',
+      'Aktualizuje Start SDK do wersji 2.0.9, usuwa zduplikowane kopie SDK z zależności pakietu i pewniej ustala adresy połączonych usług.',
     fr_FR:
-      'Ajoute la compatibilité avec StartOS 0.4.0-beta.10 et Start SDK 2 avec routage dynamique des fournisseurs Bitcoin et Electrum.',
+      'Met à jour Start SDK vers la version 2.0.9, déduplique les copies du SDK dans les dépendances du paquet et détermine plus fiablement les adresses des services connectés.',
   },
   migrations: {
     up: async ({ effects }) => {
