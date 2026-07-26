@@ -103,7 +103,12 @@ export const main = sdk.setupMain(async ({ effects }) => {
 
   // watch bitcoin .cookie file to restart daemon on changes
   await FileHelper.string(`${subcontainer.rootfs}/root/.bitcoin/.cookie`)
-    .read()
+    // Ignore removal during Bitcoin Core shutdown; restart only after a
+    // replacement cookie is written.
+    .read(
+      (cookie) => cookie,
+      (prev, next) => next === null || prev === next,
+    )
     .const(effects)
 
   // Keep track of the latest sync-progress line from stdout.
