@@ -1,49 +1,16 @@
-# Frigate Electrum Server -- StartOS Package
+# AGENTS.md
 
-## How the upstream version is pulled
+This is a StartOS service-package repository — it builds a `.s9pk` for StartOS.
 
-- `FRIGATE_VERSION` in `startos/versions/current.ts` sets both the Docker image tag and the ExVer version string
-- Docker image: `ghcr.io/remcoros/frigate-docker:<version>` (maintained separately at `remcoros/frigate-docker`)
-- Two Docker image variants: default (`<version>`) for generic/nvidia, and `<version>-amd` for the AMD variant
-- When bumping upstream: update `FRIGATE_VERSION` in `current.ts`, update the ExVer version string there, and rebuild the Docker images in `frigate-docker` first
+Develop it inside a StartOS packaging workspace created by `start-cli s9pk init-workspace`,
+which provides the packaging guide and agent context one level up. If you're reading this in a
+bare clone with no workspace, the full guide is at <https://docs.start9.com/packaging>.
 
-## Key files
+Work this package's `TODO.md` from top to bottom. Keep `README.md` (technical reference for an AI support or administering agent) and `instructions.md` (end-user docs) in sync with your changes.
 
-| File | Purpose |
-| --- | --- |
-| `startos/manifest/index.ts` | Manifest: id, images (3 variants: generic/nvidia/amd), volumes, dependencies, hardware acceleration |
-| `startos/versions/current.ts` | `FRIGATE_VERSION` constant and current ExVer version info |
-| `startos/versions/index.ts` | Exports `current` and `versionGraph` |
-| `startos/fileModels/config.toml.ts` | Config file model (zod-typed), default values |
-| `startos/actions/config.ts` | Configure Frigate action (user-facing settings) |
-| `startos/dependencies.ts` | Dependency requirements and bitcoind autoconfig task |
-| `startos/interfaces.ts` | Electrum interface on port 50001/50002 |
-| `startos/main.ts` | Daemon setup, health checks, volume mounts |
-| `startos/backups.ts` | Backup config (excludes `/db`) |
-| `instructions.md` | User-facing setup instructions (linked as docsUrl) |
-| `README.md` | Package README (keep in sync after every change) |
+## This repo
 
-## Default overrides
-
-- `index.startHeight` defaults to `840000` (upstream default is `709632`)
-- Comment in `config.toml.ts` explains the divergence
-
-## Validation
-
-```
-npm run check    # TypeScript type check
-make x86         # Build x86_64 s9pk
-```
-
-Run `npm run prettier` before committing when available.
-
-## Version bump checklist
-
-1. Update `FRIGATE_VERSION` in `startos/versions/current.ts`
-2. Update the ExVer `version` and `releaseNotes` in `startos/versions/current.ts`
-3. Run `npm run check` and `make x86`
-
-## Commit style
-
-Conventional commits. Branch names: `update/<version>`, `feat/<name>`, `fix/<name>`, `chore/<name>`.
-
+- **This is Sparrow Wallet's Frigate, an Electrum server — not the Frigate NVR project.** Every search result for "Frigate Docker" is the NVR. Verify against <https://github.com/sparrowwallet/frigate> before acting on anything you read elsewhere.
+- **Three build variants share one package id.** `VARIANT` (`generic` / `nvidia` / `amd`) selects the image and the hardware requirement in `startos/manifest/index.ts`; the `Makefile`'s `TARGETS` fans them out one s9pk per variant-arch, and CI builds all four leaves. An unrecognised `VARIANT` throws rather than silently packing the generic image — keep it that way. Build one locally with `make generic-x86` / `make nvidia-x86` / `make amd-x86`; bare `make x86` builds the generic image under the unsuffixed name.
+- **The `amd` variant pulls the `-rocm` image, not `-amd`.** `remcoros/frigate-docker` publishes both (`-amd` is Mesa Rusticl, `-rocm` is TheRock's ROCm OpenCL); this package ships ROCm. Don't "fix" the tag to match the variant name.
+- **`startos/utils.ts` exists for dependents**, not for this package — it exports the Electrum host id and container port so another package can resolve Frigate over the bridge without a literal.
