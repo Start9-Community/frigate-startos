@@ -5,6 +5,7 @@ import {
   config,
   ElectrumServerType,
   indexStartHeightDefault,
+  isCacheSize,
 } from '../fileModels/config.toml'
 import { ensureStore, store } from '../fileModels/store.json'
 
@@ -59,13 +60,6 @@ const inputSpec = InputSpec.of({
       description: i18n('Advanced settings'),
     },
     InputSpec.of({
-      startIndexing: Value.toggle({
-        name: i18n('Start Indexing on Launch'),
-        description: i18n(
-          'Whether Frigate should start indexing the blockchain upon launch.',
-        ),
-        default: true,
-      }),
       indexStartHeight: Value.number({
         name: i18n('Index Start Height'),
         description: i18n(
@@ -133,26 +127,21 @@ export const setConfig = sdk.Action.withInput(
   inputSpec,
 
   async ({ effects }) => {
-    let currentConfig = await config.read().once()
-    if (!currentConfig) {
-      await createDefaultConfig(effects)
-      currentConfig = (await config.read().once())!
-    }
+    await createDefaultConfig(effects)
     await ensureStore(effects)
+    const currentConfig = (await config.read().once())!
     const currentStore = (await store.read().once())!
 
     return {
       electrumServer: {
         selection: currentStore.electrumServer,
+        value: {},
       },
       advanced: {
-        startIndexing: true, // not stored in config.toml; always start indexing
         indexStartHeight: currentConfig.index.startHeight,
-        scriptPubKeyCacheSize: (['1M', '5M', '10M', '20M', '50M'].includes(
-          currentConfig.index.cacheSize,
-        )
+        scriptPubKeyCacheSize: isCacheSize(currentConfig.index.cacheSize)
           ? currentConfig.index.cacheSize
-          : '10M') as '1M' | '5M' | '10M' | '20M' | '50M',
+          : '10M',
         computeBackend: currentConfig.scan.computeBackend,
         batchSize: currentConfig.scan.batchSize,
       },
@@ -166,10 +155,10 @@ export const setConfig = sdk.Action.withInput(
     await config.merge(effects, {
       index: {
         startHeight: input.advanced.indexStartHeight,
-        cacheSize: input.advanced.scriptPubKeyCacheSize as string,
+        cacheSize: input.advanced.scriptPubKeyCacheSize,
       },
       scan: {
-        computeBackend: input.advanced.computeBackend as 'AUTO' | 'GPU' | 'CPU',
+        computeBackend: input.advanced.computeBackend,
         batchSize: input.advanced.batchSize,
       },
     })

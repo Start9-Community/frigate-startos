@@ -1,36 +1,42 @@
 import { setupManifest, T } from '@start9labs/start-sdk'
 import { FRIGATE_VERSION } from '../versions'
+import {
+  bitcoindDescription,
+  electrumBackendDescription,
+  long,
+  short,
+} from './i18n'
 
-const variant = process.env.VARIANT || 'generic'
-
-type Mutable<T> = { -readonly [K in keyof T]: Mutable<T[K]> }
-const mutable = <T>(value: T): Mutable<T> => value as Mutable<T>
-
-const defaultImage = {
-  dockerTag: 'ghcr.io/remcoros/frigate-docker:' + FRIGATE_VERSION,
+// `remcoros/frigate-docker` is contributor-built, so its tags are not immutable:
+// the digest is what selects the image, and the tag rides along only to keep
+// this readable. Both must be re-resolved together on a bump — see UPDATING.md.
+const defaultSource = {
+  dockerTag: `ghcr.io/remcoros/frigate-docker:${FRIGATE_VERSION}@sha256:5c42000d397fedc045ad8d4dfa49f1ca53977c9a450f70180d20580bfba3d67b`,
 }
 
-const amdImage = {
-  dockerTag: 'ghcr.io/remcoros/frigate-docker:' + FRIGATE_VERSION + '-rocm',
+const rocmSource = {
+  dockerTag: `ghcr.io/remcoros/frigate-docker:${FRIGATE_VERSION}-rocm@sha256:e12bbc0e0079367cb34aa49ca33159c8ec381a1e5e44643dc74b505e2880d240`,
 }
 
-const imageConfigs = {
+const images = {
   generic: {
+    source: defaultSource,
     arch: ['x86_64', 'aarch64'],
-    source: defaultImage,
   },
   nvidia: {
+    source: defaultSource,
     arch: ['x86_64'],
     nvidiaContainer: true,
-    source: defaultImage,
   },
   amd: {
+    source: rocmSource,
     arch: ['x86_64'],
-    source: amdImage,
   },
-} as const
+} satisfies Record<string, T.SDKManifest['images'][string]>
 
-const deviceRequirements: Record<string, T.DeviceFilter[]> = {
+type Variant = keyof typeof images
+
+const deviceRequirements: Record<Variant, T.DeviceFilter[]> = {
   generic: [],
   nvidia: [
     {
@@ -47,60 +53,57 @@ const deviceRequirements: Record<string, T.DeviceFilter[]> = {
       product: null,
       vendor: null,
       driver: 'amdgpu',
-      description: 'An AMD GPU supported by Mesa Rusticl/radeonsi',
+      description: 'An AMD GPU supported by ROCm',
     },
   ],
 }
+
+const isVariant = (value: string): value is Variant => value in images
+
+const variant = process.env.VARIANT ?? 'generic'
+if (!isVariant(variant))
+  throw new Error(
+    `unknown VARIANT '${variant}': expected one of ${Object.keys(images).join(', ')}`,
+  )
 
 export const manifest = setupManifest({
   id: 'frigate',
   title: 'Frigate Electrum Server',
   license: 'Apache-2.0',
-  packageRepo: 'https://github.com/remcoros/frigate-startos',
+  packageRepo: 'https://github.com/Start9-Community/frigate-startos',
   upstreamRepo: 'https://github.com/sparrowwallet/frigate',
   marketingUrl: 'https://github.com/sparrowwallet/frigate',
   donationUrl: 'https://sparrowwallet.com/donate/',
-  description: {
-    short: { en_US: 'Frigate Electrum Server' },
-    long: {
-      en_US:
-        'Frigate is an experimental Electrum Server testing Silent Payments scanning with ephemeral client keys.',
-    },
-  },
+  description: { short, long },
   volumes: ['main'],
-  images: {
-    main: mutable(
-      imageConfigs[variant as keyof typeof imageConfigs] ??
-        imageConfigs.generic,
-    ),
-  },
+  images: { main: images[variant] },
   hardwareAcceleration: true,
   hardwareRequirements: {
-    device: deviceRequirements[variant] ?? [],
+    device: deviceRequirements[variant],
   },
   dependencies: {
     bitcoind: {
-      description: { en_US: 'Used to subscribe to new block events.' },
+      description: bitcoindDescription,
       optional: false,
       metadata: {
-        title: 'A Bitcoin Full Node',
-        icon: 'https://bitcoin.org/img/icons/opengraph.png',
+        title: 'Bitcoin',
+        icon: 'https://raw.githubusercontent.com/Start9Labs/bitcoin-core-startos/feec0b1dae42961a257948fe39b40caf8672fce1/dep-icon.svg',
       },
     },
     electrs: {
-      description: { en_US: 'Electrs Electrum server backend (optional).' },
+      description: electrumBackendDescription,
       optional: true,
       metadata: {
         title: 'Electrs',
-        icon: 'https://raw.githubusercontent.com/Start9Labs/electrs-startos/master/icon.svg',
+        icon: 'https://raw.githubusercontent.com/Start9-Community/electrs-startos/refs/heads/master/icon.svg',
       },
     },
     fulcrum: {
-      description: { en_US: 'Fulcrum Electrum server backend (optional).' },
+      description: electrumBackendDescription,
       optional: true,
       metadata: {
         title: 'Fulcrum',
-        icon: 'https://raw.githubusercontent.com/Start9Labs/fulcrum-startos/next/icon.png',
+        icon: 'https://raw.githubusercontent.com/Start9Labs/fulcrum-startos/refs/heads/master/icon.png',
       },
     },
   },

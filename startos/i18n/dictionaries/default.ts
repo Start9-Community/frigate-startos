@@ -2,15 +2,15 @@ export const DEFAULT_LANG = 'en_US'
 
 const dict = {
   // main.ts
+  'Starting Frigate...': 1,
   'Frigate is running': 2,
   'Frigate is syncing...': 3,
   'Sync Progress': 4,
-  'Frigate has not yet indexed any blocks': 5,
   'Fully synced': 6,
 
   // interfaces.ts
   'Electrum (SSL)': 100,
-  'Electrum server endpoint': 101,
+  'The Electrum protocol endpoint, served over SSL': 101,
 
   // actions/config.ts
   'Configure Frigate': 200,
@@ -22,8 +22,6 @@ const dict = {
   Electrs: 206,
   'None (not recommended)': 207,
   'Advanced settings': 208,
-  'Start Indexing on Launch': 209,
-  'Whether Frigate should start indexing the blockchain upon launch.': 210,
   'Index Start Height': 211,
   'The block height from which Frigate should start indexing.': 212,
   'Script PubKey Cache Size': 213,
@@ -39,7 +37,7 @@ const dict = {
   '10M (default)': 223,
 
   // dependencies.ts and init/index.ts
-  'Frigate requires txindex, pruning disabled, and ZMQ enabled in Bitcoin Core.': 300,
+  'Frigate requires txindex, pruning disabled, and ZMQ enabled in Bitcoin.': 300,
   'Configure Frigate settings': 301,
 } as const
 
