@@ -1,18 +1,23 @@
 import { z, FileHelper, T } from '@start9labs/start-sdk'
 import { sdk } from '../sdk'
 
-// Default start height used by this package. Upstream default is 709632 (Taproot activation on mainnet).
-// We use a more recent height to speed up initial sync for typical users.
+// Upstream's default is 709632, Taproot activation on mainnet.
 export const indexStartHeightDefault = 840000
+
+const cacheSizes = ['1M', '5M', '10M', '20M', '50M'] as const
+export const isCacheSize = (
+  value: string,
+): value is (typeof cacheSizes)[number] =>
+  (cacheSizes as readonly string[]).includes(value)
+
 export type ElectrumServerType = 'fulcrum' | 'electrs' | 'none'
-export const legacyElectrumServers: Record<ElectrumServerType, string> = {
-  fulcrum: 'tcp://fulcrum.startos:50001',
-  electrs: 'tcp://electrs.startos:50001',
-  none: '',
+
+// Backend addresses this package hard-coded before it kept the selection in
+// store.json. Recognised so an install predating the store keeps its choice.
+export const legacyElectrumServerByUrl: Record<string, ElectrumServerType> = {
+  'tcp://fulcrum.startos:50001': 'fulcrum',
+  'tcp://electrs.startos:50001': 'electrs',
 }
-export const legacyElectrumServerByUrl = Object.fromEntries(
-  Object.entries(legacyElectrumServers).map(([key, value]) => [value, key]),
-) as Record<string, ElectrumServerType>
 
 // Matches Frigate's native config.toml structure
 const shape = z.object({
@@ -61,8 +66,6 @@ const shape = z.object({
       backendElectrumServer: '',
     }),
 })
-
-export type FrigateConfigType = z.infer<typeof shape>
 
 export const config = FileHelper.toml(
   {

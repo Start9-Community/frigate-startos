@@ -1,10 +1,10 @@
-import { FileHelper } from '@start9labs/start-sdk'
+import { manifest as bitcoinManifest } from 'bitcoin-core-startos/startos/manifest'
 import {
   rpcHostId,
   rpcPort,
   zmqHostId,
   zmqPortTransaction,
-} from 'bitcoind-startos/startos/utils'
+} from 'bitcoin-core-startos/startos/utils'
 import {
   electrumHostId as electrsHostId,
   port as electrsPort,
@@ -17,9 +17,10 @@ import { config } from './fileModels/config.toml'
 import { store } from './fileModels/store.json'
 import { sdk } from './sdk'
 import { i18n } from './i18n'
+import { electrumPort } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
-  console.info('Starting Frigate...')
+  console.info(i18n('Starting Frigate...'))
 
   // Watch only user-controlled settings. Address rewrites below do not restart
   // main unless the selected provider or its assigned bridge port changes.
@@ -91,7 +92,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         mountpoint: '/root/.frigate',
         readonly: false,
       })
-      .mountDependency({
+      .mountDependency<typeof bitcoinManifest>({
         dependencyId: 'bitcoind',
         mountpoint: '/root/.bitcoin',
         volumeId: 'main',
@@ -101,23 +102,16 @@ export const main = sdk.setupMain(async ({ effects }) => {
     'main',
   )
 
-  // watch bitcoin .cookie file to restart daemon on changes
-  await FileHelper.string(`${subcontainer.rootfs}/root/.bitcoin/.cookie`)
-    // Ignore removal during Bitcoin Core shutdown; restart only after a
-    // replacement cookie is written.
-    .read(
-      (cookie) => cookie,
-      (prev, next) => next === null || prev === next,
-    )
-    .const(effects)
-
-  // Keep track of the latest sync-progress line from stdout.
-  // Captured by onStdout on the primary daemon; read by the sync-progress health check.
+  // Frigate announces the index it is about to build a few seconds after
+  // launch, then reports progress only every 30s. Readiness keys off the
+  // announcement: keying off progress alone leaves a healthy service reporting
+  // failure for the first half-minute of every start.
+  let indexing = false
   let lastSyncLog: string | null = null
 
   return sdk.Daemons.of(effects)
     .addDaemon('primary', {
-      subcontainer: subcontainer,
+      subcontainer,
       exec: {
         command: sdk.useEntrypoint(),
         env: {
@@ -130,8 +124,13 @@ export const main = sdk.setupMain(async ({ effects }) => {
 
           console.log(text)
 
+          if (/Indexing \d+ blocks|Block index is up to date/.test(text)) {
+            indexing = true
+          }
+
           const match = text.match(/Indexing progress: (.+)/)
           if (match) {
+            indexing = true
             lastSyncLog = match[1].trim()
           }
         },
@@ -141,7 +140,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         fn: async () => {
           const result = await sdk.healthCheck.checkPortListening(
             effects,
-            50001,
+            electrumPort,
             {
               successMessage: i18n('Frigate is running'),
               errorMessage: i18n('Frigate is syncing...'),
@@ -150,10 +149,14 @@ export const main = sdk.setupMain(async ({ effects }) => {
 
           if (result.result === 'success') return result
 
-          return {
-            result: 'loading',
-            message: i18n('Frigate is syncing...'),
+          if (indexing) {
+            return {
+              result: 'loading',
+              message: i18n('Frigate is syncing...'),
+            }
           }
+
+          return result
         },
       },
       requires: [],
@@ -165,7 +168,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
           // If the port is open, Frigate is fully synced.
           const portCheck = await sdk.healthCheck.checkPortListening(
             effects,
-            50001,
+            electrumPort,
             {
               successMessage: i18n('Fully synced'),
               errorMessage: '',

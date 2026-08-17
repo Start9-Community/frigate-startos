@@ -1,3 +1,4 @@
+import { T } from '@start9labs/start-sdk'
 import { sdk } from '../sdk'
 import { setInterfaces } from '../interfaces'
 import { versionGraph } from '../versions'
@@ -12,7 +13,6 @@ import { i18n } from '../i18n'
 type InitKind = 'install' | 'update' | 'restore' | null
 
 async function setupConfig(effects: T.Effects, kind: InitKind) {
-  // Always ensure config exists (safe to run on install and update)
   await createDefaultConfig(effects)
   await ensureStore(effects)
 
@@ -33,4 +33,3 @@ export const init = sdk.setupInit(
 )
 
 export const uninit = sdk.setupUninit(versionGraph)
-import { T } from '@start9labs/start-sdk'

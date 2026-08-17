@@ -7,10 +7,9 @@
   },
   "dependencies": {
     "@start9labs/start-sdk": "2.0.9",
-    "bitcoind-startos": "github:Start9Labs/bitcoin-core-startos#31.x",
-    "electrs-startos": "github:start9-community/electrs-startos#master",
-    "fulcrum-startos": "github:Start9Labs/fulcrum-startos#master",
-    "tor-startos": "github:Start9Labs/tor-startos#master"
+    "bitcoin-core-startos": "github:Start9Labs/bitcoin-core-startos#next/28.x",
+    "electrs-startos": "github:Start9-Community/electrs-startos#next",
+    "fulcrum-startos": "github:Start9Labs/fulcrum-startos#next"
   },
   "devDependencies": {
     "@types/node": "^22.19.17",
