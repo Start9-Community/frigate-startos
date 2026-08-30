@@ -2,6 +2,7 @@
 
 ## Documentation
 
+- [Start9 Bitcoin Guides](https://docs.start9.com/bitcoin-guides/) — what an Electrum server is, pointing a wallet at one, and archival versus pruned Bitcoin nodes.
 - [Frigate README](https://github.com/sparrowwallet/frigate/blob/master/README.md) — the upstream project page and the full `config.toml` reference.
 - [BIP352](https://github.com/bitcoin/bips/blob/master/bip-0352.mediawiki) — the Silent Payments specification Frigate implements.
 
