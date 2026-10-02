@@ -81,18 +81,19 @@ One model, `config.toml`, and the package owns roughly half of it. The other hal
 
 `config.toml` is seeded with the package's defaults on install, then partially rewritten on every start. The keys the package re-asserts each time are the ones that describe where Bitcoin is, and a hand edit to any of them will not survive a restart:
 
-| Key                            | Value the package writes                                       |
-| ------------------------------ | -------------------------------------------------------------- |
-| `core.connect`                 | always `true`                                                  |
-| `core.server`                  | Bitcoin's RPC address, resolved live over the container bridge |
-| `core.authType`                | always `COOKIE`                                                |
-| `core.dataDir`                 | `/root/.bitcoin`, where Bitcoin's volume is mounted            |
-| `core.zmqSequenceEndpoint`     | Bitcoin's ZMQ sequence address, resolved live                  |
-| `server.backendElectrumServer` | the selected backend's address, or empty when none is selected |
+| Key                            | Value the package writes                                            |
+| ------------------------------ | ------------------------------------------------------------------- |
+| `core.connect`                 | always `true`                                                       |
+| `core.server`                  | Bitcoin's RPC address, resolved live over the container bridge      |
+| `core.authType`                | always `COOKIE`                                                     |
+| `core.dataDir`                 | `/root/.bitcoin`, where Bitcoin's volume is mounted                 |
+| `core.zmqSequenceEndpoint`     | Bitcoin's ZMQ sequence address, resolved live                       |
+| `server.backendElectrumServer` | the selected backend's address, or empty when none is selected      |
+| `limits.excludedSubnets`       | upstream loopback defaults plus StartOS's current TLS-proxy address |
 
 `index.startHeight`, `index.cacheSize`, `scan.computeBackend`, and `scan.batchSize` are seeded once and thereafter belong to the **Configure Frigate** action. Those four are watched rather than rewritten: a hand edit survives, and changing any of them — by hand or through the action — restarts Frigate so the new value takes effect, since Frigate never re-reads its config while running.
 
-Any key the package does not name is left alone entirely, including the upstream keys this package exposes no control for.
+Any key the package does not name is left alone entirely, including the upstream keys this package exposes no control for. The `limits.excludedSubnets` exception is necessary because StartOS terminates TLS and opens the upstream connection from its `lxcbr0` bridge address, which the package reads with `sdk.getOsIp()` whenever Frigate starts. Without it, Frigate 1.6 would treat every StartOS client as one IP for its new per-IP limits and request pacing.
 
 `store.json` records which Electrum backend the user selected. It is deliberately separate from `config.toml`: the backend's actual address is assigned by StartOS and can change, so the selection has to outlive any particular address.
 
@@ -181,6 +182,7 @@ Most of these come from the package taking ownership of the Bitcoin connection a
 4. **A different default start height.** This package indexes from a more recent block than upstream does, to keep the first sync tolerable. The trade-off and how to change it are covered in the Instructions tab.
 5. **The AMD variant is built on ROCm nightlies.** The image pins a nightly ROCm release; it has not been tested by the packager on real AMD hardware.
 6. **Upstream is experimental.** Silent Payments support is still moving, and so is the wallet support for it.
+7. **StartOS manages the Frigate 1.6 proxy exception.** The platform terminates TLS before it reaches Frigate, so the package reads the current bridge address with `sdk.getOsIp()` and includes it in `limits.excludedSubnets`. Do not remove it: otherwise every client through StartOS is treated as the same IP and can hit Frigate's per-IP limits.
 
 ---
 

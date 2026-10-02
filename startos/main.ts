@@ -13,7 +13,10 @@ import {
   electrumPort as fulcrumPort,
   mainHostId as fulcrumHostId,
 } from 'fulcrum-startos/startos/utils'
-import { config } from './fileModels/config.toml'
+import {
+  config,
+  excludedSubnetsForStartosProxy,
+} from './fileModels/config.toml'
 import { store } from './fileModels/store.json'
 import { sdk } from './sdk'
 import { i18n } from './i18n'
@@ -28,6 +31,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
 
   const selection =
     (await store.read((value) => value.electrumServer).const(effects)) ?? 'none'
+  const startosProxyIp = await sdk.getOsIp(effects)
   const rpcAddress = await sdk.host
     .getBridgeAddress(effects, {
       packageId: 'bitcoind',
@@ -75,6 +79,12 @@ export const main = sdk.setupMain(async ({ effects }) => {
       },
       server: {
         backendElectrumServer: backendAddress ? `tcp://${backendAddress}` : '',
+      },
+      // Frigate 1.6 applies per-IP limits to incoming clients. StartOS
+      // terminates TLS and makes this connection from its lxcbr0 gateway, so
+      // preserve upstream's loopback exceptions and exempt that proxy too.
+      limits: {
+        excludedSubnets: excludedSubnetsForStartosProxy(startosProxyIp),
       },
     },
     { allowWriteAfterConst: true },
