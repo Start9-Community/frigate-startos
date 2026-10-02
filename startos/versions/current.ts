@@ -17,10 +17,7 @@ export const current = VersionInfo.of({
       'Met à jour Frigate vers la version 1.6.0. Cette version ajoute des limites de connexions, de requêtes et d’abonnements pour protéger les serveurs publics, une connexion plus robuste au backend Electrum, un arrêt propre et des statistiques optionnelles sur l’état du serveur. StartOS exempte son proxy TLS des limites par IP de Frigate afin que vos clients continuent de fonctionner normalement.',
   },
   migrations: {
-    up: async ({ effects }) => {
-      const { ensureStore } = await import('../fileModels/store.json')
-      await ensureStore(effects)
-    },
+    up: async () => {},
     down: IMPOSSIBLE,
   },
 })
