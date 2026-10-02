@@ -4,6 +4,15 @@ import { sdk } from '../sdk'
 // Upstream's default is 709632, Taproot activation on mainnet.
 export const indexStartHeightDefault = 840000
 
+// StartOS terminates the public TLS listener and connects to Frigate through
+// its lxcbr0 gateway. Frigate 1.6's per-IP limits would otherwise treat every
+// proxied client as this one address.
+export const excludedSubnetsForStartosProxy = (proxyIp: string): string[] => [
+  '127.0.0.1/32',
+  '::1/128',
+  `${proxyIp}/32`,
+]
+
 const cacheSizes = ['1M', '5M', '10M', '20M', '50M'] as const
 export const isCacheSize = (
   value: string,
@@ -58,6 +67,13 @@ const shape = z.object({
       computeBackend: 'AUTO' as const,
       batchSize: 300000,
     }),
+  limits: z
+    .object({
+      excludedSubnets: z.array(z.string()).catch(['127.0.0.1/32', '::1/128']),
+    })
+    .catch({
+      excludedSubnets: ['127.0.0.1/32', '::1/128'],
+    }),
   server: z
     .object({
       backendElectrumServer: z.string().catch(''),
@@ -78,6 +94,7 @@ export const config = FileHelper.toml(
 export const createDefaultConfig = async (effects: T.Effects) => {
   const conf = await config.read().once()
   if (!conf) {
+    const startosProxyIp = await sdk.getOsIp(effects)
     await config.write(effects, {
       core: {
         connect: true,
@@ -92,6 +109,9 @@ export const createDefaultConfig = async (effects: T.Effects) => {
       scan: {
         computeBackend: 'AUTO',
         batchSize: 300000,
+      },
+      limits: {
+        excludedSubnets: excludedSubnetsForStartosProxy(startosProxyIp),
       },
       server: {
         backendElectrumServer: '',

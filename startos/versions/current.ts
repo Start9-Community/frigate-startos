@@ -1,20 +1,20 @@
 import { IMPOSSIBLE, VersionInfo } from '@start9labs/start-sdk'
 
-export const FRIGATE_VERSION = '1.5.3.3'
+export const FRIGATE_VERSION = '1.6.0'
 
 export const current = VersionInfo.of({
-  version: '1.5.3:8',
+  version: '1.6.0:0',
   releaseNotes: {
     en_US:
-      'First release on the Start9 Community Registry. Fixes the plaintext Electrum port, which asked for the same external port as the SSL one; marks Electrum addresses as `tcp` and `ssl` so they can be pasted straight into a wallet; raises the Bitcoin version floor to one that actually offers the ZMQ setting Frigate needs; and drops a "Start Indexing on Launch" toggle that never did anything.',
+      'Updates Frigate to 1.6.0. This release adds connection, request, and subscription limits that protect public servers; a more resilient Electrum-backend connection; graceful shutdown; and optional server-health statistics. StartOS keeps its TLS proxy exempt from Frigate’s per-IP limits so your clients continue to work normally.',
     es_ES:
-      'Primera publicación en el Registro Comunitario de Start9. Corrige el puerto Electrum en texto plano, que pedía el mismo puerto externo que el de SSL; marca las direcciones Electrum como `tcp` y `ssl` para poder pegarlas directamente en una cartera; eleva la versión mínima de Bitcoin a una que realmente ofrezca la opción ZMQ que Frigate necesita; y elimina un interruptor «Iniciar la indexación al arrancar» que nunca hizo nada.',
+      'Actualiza Frigate a la versión 1.6.0. Esta versión añade límites de conexiones, solicitudes y suscripciones que protegen los servidores públicos; una conexión más resistente con el backend Electrum; apagado ordenado; y estadísticas opcionales del estado del servidor. StartOS mantiene su proxy TLS exento de los límites por IP de Frigate para que tus clientes sigan funcionando normalmente.',
     de_DE:
-      'Erste Veröffentlichung in der Start9 Community Registry. Korrigiert den unverschlüsselten Electrum-Port, der denselben externen Port anforderte wie der SSL-Port; kennzeichnet Electrum-Adressen als `tcp` bzw. `ssl`, sodass sie direkt in eine Wallet eingefügt werden können; hebt die Bitcoin-Mindestversion auf eine an, die die von Frigate benötigte ZMQ-Einstellung tatsächlich anbietet; und entfernt den Schalter „Indizierung beim Start beginnen“, der nie etwas bewirkt hat.',
+      'Aktualisiert Frigate auf 1.6.0. Diese Version ergänzt Verbindungs-, Anfragen- und Abonnementlimits zum Schutz öffentlicher Server, eine robustere Verbindung zum Electrum-Backend, einen geordneten Shutdown und optionale Serverzustandsstatistiken. StartOS nimmt seinen TLS-Proxy von Frigates Limits pro IP aus, damit deine Clients weiterhin normal funktionieren.',
     pl_PL:
-      'Pierwsze wydanie w Rejestrze Społeczności Start9. Naprawia nieszyfrowany port Electrum, który żądał tego samego portu zewnętrznego co port SSL; oznacza adresy Electrum jako `tcp` i `ssl`, dzięki czemu można je wkleić wprost do portfela; podnosi minimalną wersję Bitcoina do takiej, która faktycznie udostępnia ustawienie ZMQ wymagane przez Frigate; oraz usuwa przełącznik „Rozpocznij indeksowanie przy starcie”, który nigdy nic nie robił.',
+      'Aktualizuje Frigate do wersji 1.6.0. To wydanie dodaje limity połączeń, żądań i subskrypcji chroniące publiczne serwery, bardziej odporną komunikację z backendem Electrum, łagodne zamykanie oraz opcjonalne statystyki stanu serwera. StartOS wyłącza swój proxy TLS z limitów Frigate na adres IP, dzięki czemu klienci nadal działają normalnie.',
     fr_FR:
-      "Première publication sur le Registre Communautaire Start9. Corrige le port Electrum en clair, qui demandait le même port externe que celui en SSL ; marque les adresses Electrum comme `tcp` et `ssl` afin de pouvoir les coller directement dans un portefeuille ; relève la version minimale de Bitcoin à une version qui propose réellement le réglage ZMQ dont Frigate a besoin ; et supprime un interrupteur « Démarrer l'indexation au lancement » qui n'a jamais rien fait.",
+      'Met à jour Frigate vers la version 1.6.0. Cette version ajoute des limites de connexions, de requêtes et d’abonnements pour protéger les serveurs publics, une connexion plus robuste au backend Electrum, un arrêt propre et des statistiques optionnelles sur l’état du serveur. StartOS exempte son proxy TLS des limites par IP de Frigate afin que vos clients continuent de fonctionner normalement.',
   },
   migrations: {
     up: async ({ effects }) => {

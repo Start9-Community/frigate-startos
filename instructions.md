@@ -12,6 +12,10 @@ An Electrum server that scans the blockchain for Silent Payments on your wallet'
 
 Frigate answers Silent Payments queries and nothing else. To use it as your wallet's only server, pair it with **Fulcrum** or **Electrs**, which answer ordinary address lookups; Frigate forwards those to whichever one you select.
 
+## Server protections
+
+Frigate 1.6 adds limits that protect a public Electrum server from too many connections, oversized requests, and excessive subscriptions. No configuration is needed on StartOS: it automatically accounts for the TLS proxy in front of Frigate, so the proxy does not make all of your clients appear as one limited IP address.
+
 ## Getting set up
 
 1. **Install Bitcoin** and let it finish syncing. Frigate needs a full, unpruned node, and you'll be asked to run Bitcoin's **Auto-Configure** to turn on the settings Frigate depends on.
