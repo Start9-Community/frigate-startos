@@ -11,11 +11,11 @@ import {
 // the digest is what selects the image, and the tag rides along only to keep
 // this readable. Both must be re-resolved together on a bump — see UPDATING.md.
 const defaultSource = {
-  dockerTag: `ghcr.io/remcoros/frigate-docker:${FRIGATE_VERSION}@sha256:bcd0779a76c565aaf5f660ac0fc49e2c04b261b1120d13ad2a6f7315e80e55a0`,
+  dockerTag: `ghcr.io/remcoros/frigate-docker:${FRIGATE_VERSION}@sha256:218cc79bdcd300651f516d3e40ae43dcc48763329f223133c9d606f039c22f8b`,
 }
 
 const rocmSource = {
-  dockerTag: `ghcr.io/remcoros/frigate-docker:${FRIGATE_VERSION}-rocm@sha256:f05e17151a4fc7b906c08de68d0f28b667698094b71149c25133d67a4aabec63`,
+  dockerTag: `ghcr.io/remcoros/frigate-docker:${FRIGATE_VERSION}-rocm@sha256:1cf651c4f3ab4a135fbdda3b4bfe172ef9c278ec4ca3a79c4c212029d20c9348`,
 }
 
 const images = {
