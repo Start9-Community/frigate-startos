@@ -4,7 +4,7 @@ import { setInterfaces } from '../interfaces'
 import { versionGraph } from '../versions'
 import { actions } from '../actions'
 import { restoreInit } from '../backups'
-import { setDependencies } from '../dependencies'
+import { dependencies } from '../dependencies'
 import { createDefaultConfig } from '../fileModels/config.toml'
 import { setConfig } from '../actions/config'
 import { ensureStore } from '../fileModels/store.json'
@@ -27,8 +27,8 @@ export const init = sdk.setupInit(
   restoreInit,
   versionGraph,
   setInterfaces,
-  setDependencies,
   actions,
+  dependencies,
   setupConfig,
 )
 

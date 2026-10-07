@@ -31,7 +31,9 @@ const inputSpec = InputSpec.of({
 
     return {
       name: i18n('Electrum Server'),
-      description: i18n('Electrum Backend Server'),
+      description: i18n(
+        'Where Frigate sends the Electrum requests it does not answer itself, address lookups included. Frigate answers Silent Payments requests on its own.\n- Fulcrum: Fulcrum on this server.\n- Electrs: Electrs on this server.\n- None: no backend; wallets get Silent Payments results only.',
+      ),
       default: serverType,
       disabled: disabled,
       variants: Variants.of({
@@ -57,13 +59,13 @@ const inputSpec = InputSpec.of({
   advanced: Value.object(
     {
       name: i18n('Advanced settings'),
-      description: i18n('Advanced settings'),
+      description: null,
     },
     InputSpec.of({
       indexStartHeight: Value.number({
         name: i18n('Index Start Height'),
         description: i18n(
-          'The block height from which Frigate should start indexing.',
+          'Blocks below this height are not indexed, so Silent Payments in them are not found.',
         ),
         required: true,
         integer: true,
@@ -74,7 +76,7 @@ const inputSpec = InputSpec.of({
       scriptPubKeyCacheSize: Value.select({
         name: i18n('Script PubKey Cache Size'),
         description: i18n(
-          'Size of the Script PubKey cache (default 10M ≈ 4GB RAM).',
+          'How many scriptPubKeys Frigate keeps in memory while indexing. A larger cache indexes faster and uses more RAM; 10M uses about 4 GB.',
         ),
         values: {
           '1M': '1M',
@@ -88,7 +90,7 @@ const inputSpec = InputSpec.of({
       computeBackend: Value.select({
         name: i18n('Compute Backend'),
         description: i18n(
-          'GPU acceleration backend for Silent Payments scanning. AUTO detects and prefers GPU over CPU.',
+          'Hardware used for historical Silent Payments scans. Mempool and new-block scans always run on the CPU.\n- Auto (prefer GPU): the GPU if one is detected, otherwise the CPU.\n- GPU only: always the GPU.\n- CPU only: never the GPU.',
         ),
         values: {
           AUTO: i18n('Auto (prefer GPU)'),
@@ -100,7 +102,7 @@ const inputSpec = InputSpec.of({
       batchSize: Value.number({
         name: i18n('Batch Size'),
         description: i18n(
-          'Rows per GPU dispatch (default 300,000). Reduce if scanning hangs on older GPUs.',
+          'Transactions processed per GPU dispatch. If scanning hangs or becomes unstable on an older GPU, try 10,000 to 50,000.',
         ),
         required: true,
         integer: true,

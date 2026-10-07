@@ -6,7 +6,7 @@ import {
   legacyElectrumServerByUrl,
 } from './config.toml'
 
-const shape = z.object({
+const shape = z.looseObject({
   electrumServer: z
     .union([z.literal('fulcrum'), z.literal('electrs'), z.literal('none')])
     .catch('none'),
