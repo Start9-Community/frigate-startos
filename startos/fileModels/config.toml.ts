@@ -29,9 +29,9 @@ export const legacyElectrumServerByUrl: Record<string, ElectrumServerType> = {
 }
 
 // Matches Frigate's native config.toml structure
-const shape = z.object({
+const shape = z.looseObject({
   core: z
-    .object({
+    .looseObject({
       connect: z.boolean().catch(true),
       server: z.string().optional().catch(undefined),
       authType: z
@@ -48,7 +48,7 @@ const shape = z.object({
       dataDir: '/root/.bitcoin',
     }),
   index: z
-    .object({
+    .looseObject({
       startHeight: z.number().catch(indexStartHeightDefault),
       cacheSize: z.string().catch('10M'),
     })
@@ -57,7 +57,7 @@ const shape = z.object({
       cacheSize: '10M',
     }),
   scan: z
-    .object({
+    .looseObject({
       computeBackend: z
         .union([z.literal('AUTO'), z.literal('GPU'), z.literal('CPU')])
         .catch('AUTO' as const),
@@ -68,14 +68,14 @@ const shape = z.object({
       batchSize: 300000,
     }),
   limits: z
-    .object({
+    .looseObject({
       excludedSubnets: z.array(z.string()).catch(['127.0.0.1/32', '::1/128']),
     })
     .catch({
       excludedSubnets: ['127.0.0.1/32', '::1/128'],
     }),
   server: z
-    .object({
+    .looseObject({
       backendElectrumServer: z.string().catch(''),
     })
     .catch({

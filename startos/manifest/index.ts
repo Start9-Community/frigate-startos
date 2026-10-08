@@ -1,11 +1,6 @@
 import { setupManifest, T } from '@start9labs/start-sdk'
 import { FRIGATE_VERSION } from '../versions'
-import {
-  bitcoindDescription,
-  electrumBackendDescription,
-  long,
-  short,
-} from './i18n'
+import { long, short } from './i18n'
 
 // `remcoros/frigate-docker` is contributor-built, so its tags are not immutable:
 // the digest is what selects the image, and the tag rides along only to keep
@@ -22,15 +17,18 @@ const images = {
   generic: {
     source: defaultSource,
     arch: ['x86_64', 'aarch64'],
+    emulateMissing: false,
   },
   nvidia: {
     source: defaultSource,
     arch: ['x86_64'],
     nvidiaContainer: true,
+    emulateMissing: false,
   },
   amd: {
     source: rocmSource,
     arch: ['x86_64'],
+    emulateMissing: false,
   },
 } satisfies Record<string, T.SDKManifest['images'][string]>
 
@@ -80,31 +78,5 @@ export const manifest = setupManifest({
   hardwareAcceleration: true,
   hardwareRequirements: {
     device: deviceRequirements[variant],
-  },
-  dependencies: {
-    bitcoind: {
-      description: bitcoindDescription,
-      optional: false,
-      metadata: {
-        title: 'Bitcoin',
-        icon: 'https://raw.githubusercontent.com/Start9Labs/bitcoin-core-startos/feec0b1dae42961a257948fe39b40caf8672fce1/dep-icon.svg',
-      },
-    },
-    electrs: {
-      description: electrumBackendDescription,
-      optional: true,
-      metadata: {
-        title: 'Electrs',
-        icon: 'https://raw.githubusercontent.com/Start9-Community/electrs-startos/refs/heads/master/icon.svg',
-      },
-    },
-    fulcrum: {
-      description: electrumBackendDescription,
-      optional: true,
-      metadata: {
-        title: 'Fulcrum',
-        icon: 'https://raw.githubusercontent.com/Start9Labs/fulcrum-startos/refs/heads/master/icon.png',
-      },
-    },
   },
 })
