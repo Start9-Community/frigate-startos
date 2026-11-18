@@ -6,15 +6,15 @@ export const current = VersionInfo.of({
   version: '1.6.1:5',
   releaseNotes: {
     en_US:
-      'Requires StartOS 0.4.2 or later. Mitigates Java4Shell (CVE-2026-114938) by disabling the affected Java optimization in all package variants.',
+      'Requires StartOS 0.4.2 or later. Mitigates Java4Shell (CVE-2026-114938) on affected x86-64 servers.',
     es_ES:
-      'Requiere StartOS 0.4.2 o posterior. Mitiga Java4Shell (CVE-2026-114938) desactivando la optimización de Java afectada en todas las variantes del paquete.',
+      'Requiere StartOS 0.4.2 o posterior. Mitiga Java4Shell (CVE-2026-114938) en los servidores x86-64 afectados.',
     de_DE:
-      'Erfordert StartOS 0.4.2 oder neuer. Mindert Java4Shell (CVE-2026-114938) durch Deaktivierung der betroffenen Java-Optimierung in allen Paketvarianten.',
+      'Erfordert StartOS 0.4.2 oder neuer. Entschärft Java4Shell (CVE-2026-114938) auf betroffenen x86-64-Servern.',
     pl_PL:
-      'Wymaga StartOS 0.4.2 lub nowszego. Ogranicza Java4Shell (CVE-2026-114938), wyłączając podatną optymalizację Javy we wszystkich wariantach pakietu.',
+      'Wymaga StartOS 0.4.2 lub nowszego. Ogranicza podatność Java4Shell (CVE-2026-114938) na podatnych serwerach x86-64.',
     fr_FR:
-      'Nécessite StartOS 0.4.2 ou une version ultérieure. Atténue Java4Shell (CVE-2026-114938) en désactivant l’optimisation Java concernée dans toutes les variantes du paquet.',
+      'Nécessite StartOS 0.4.2 ou une version ultérieure. Atténue Java4Shell (CVE-2026-114938) sur les serveurs x86-64 concernés.',
   },
   migrations: {
     up: async () => {},

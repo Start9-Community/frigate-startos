@@ -47,7 +47,7 @@ Upstream publishes no container image, so this package wraps a third-party one t
 | ------------ | --------------------------------------------- |
 | `main`       | The `primary` daemon — the one to `attach` to |
 
-The shared daemon environment sets `JAVA_TOOL_OPTIONS=-XX:-UseBASE64Intrinsics` in every variant. The image entrypoint and bundled JVM retain their own launcher options; the Base64 intrinsic stays disabled to mitigate Java4Shell (CVE-2026-114938). ARM64 is not affected by that vulnerability, but accepts the same option. No service-specific exploitable input path has been established.
+The shared daemon environment sets `JAVA_TOOL_OPTIONS=-XX:-UseBASE64Intrinsics` in every variant. The image entrypoint and bundled JVM retain their own launcher options; the Base64 intrinsic stays disabled to mitigate Java4Shell (CVE-2026-114938). ARM64 is not affected by that vulnerability, but accepts the same option.
 
 The package declares `hardwareAcceleration`, which is what gets `/dev/dri`, `/dev/nvidia*`, and `/dev/kfd` into the container. It ships as three build variants under one package id, and StartOS installs the most hardware-specific one a given server qualifies for:
 

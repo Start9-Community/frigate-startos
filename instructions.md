@@ -16,8 +16,6 @@ Frigate answers Silent Payments queries and nothing else. To use it as your wall
 
 Frigate 1.6 adds limits that protect a public Electrum server from too many connections, oversized requests, and excessive subscriptions. No configuration is needed on StartOS: it automatically accounts for the TLS proxy in front of Frigate, so the proxy does not make all of your clients appear as one limited IP address.
 
-The package applies the Java4Shell (CVE-2026-114938) mitigation automatically in all three variants. No additional configuration is needed.
-
 ## Getting set up
 
 1. **Install Bitcoin** and let it finish syncing. Frigate needs a full, unpruned node, and you'll be asked to run Bitcoin's **Auto-Configure** to turn on the settings Frigate depends on.

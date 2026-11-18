@@ -64,6 +64,6 @@ In `startos/versions/current.ts`:
 
 In `startos/manifest/index.ts`, replace the `sha256:` digest in **both** `defaultSource` and `rocmSource` with the ones resolved above.
 
-The daemon disables Base64 intrinsics through `JAVA_TOOL_OPTIONS` for every variant. Retain that mitigation until the bundled JVM is verified fixed for CVE-2026-114938. After an image change, check the real entrypoint accepts the option and reports `UseBASE64Intrinsics = false`; `tests/jvm-options.test.cjs` exercises the pinned generic and ROCm launchers without starting indexing.
+The daemon disables Base64 intrinsics through `JAVA_TOOL_OPTIONS` for every variant. Retain that mitigation until the bundled JVM is verified fixed for CVE-2026-114938. After an image change, check the real entrypoint accepts the option and reports `UseBASE64Intrinsics = false`.
 
 Then check the upstream release notes for new or renamed `config.toml` keys and reconcile `startos/fileModels/config.toml.ts` against them. Frigate does not reload its config at runtime, so a key this package writes but Frigate no longer reads fails silently.
