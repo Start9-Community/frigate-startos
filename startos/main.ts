@@ -131,6 +131,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
             command: sdk.useEntrypoint(),
             env: {
               NETWORK: 'mainnet',
+              JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics',
             },
             onStdout: stdoutLines((line) => {
               if (/Indexing \d+ blocks|Block index is up to date/.test(line)) {
